@@ -1,0 +1,12 @@
+U0 = f(t)
+i0 = iL +iR1
+uL = U0
+diL/dt = uL/L1
+v1 = u0
+uR1 = v1 - v2
+iR1 = uR1/R1
+v2 = uC
+iC = iR1-iR2
+duC/dt = iC/C1
+uR2 = uC
+iR2 = uR2/R2 
