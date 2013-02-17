@@ -1,12 +1,5 @@
-U0
-i0
-uL
-diL/dt
-v1
-uR1
-iR1
-v2
-iC
-duC/dt
-uR2
-iR2
+x
+y
+z
+w
+z1
