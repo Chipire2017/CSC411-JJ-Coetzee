@@ -42,13 +42,30 @@ for i in range(0,len(unkn)):
                         G.add_edge(curr_node,next_node,weight=0.5,label=str(unkn[i]))
 
 Tarjan = nx.strongly_connected_components(G)
-tarjan = tj.topological_sort(G)
-
+x = 0
+soln =0
+simu = []
+teller = 0
 Tarjan.reverse()
+eqan = []
 
+for i in range(0,len(Tarjan)):
+    curr = Tarjan[i]
+    if len(curr) == 1:
+        now = curr[0]
+        curr_eqn = eqn_numbering.get(curr[0])       
+        eqan = sy.sympify(curr_eqn)
+        soln = sy.solve(eqan,unkn)
+        
+    elif len(curr) > 1:
+        for k in range(0,len(curr)):
+            now = curr[k]
+            simu.append(eqn_numbering.get(now)) 
+        eqan = sy.sympify(simu)
+        soln = sy.solve(eqan,unkn)
+    print soln
 
 print Tarjan
-print tarjan
 print listunkn
 
 pos = nx.spring_layout(G)
