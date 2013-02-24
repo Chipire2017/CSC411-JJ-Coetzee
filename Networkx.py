@@ -7,6 +7,7 @@ except:
     raise
 
 import networkx as nx
+import Tarjan as tj
 import sympy as sy
 from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
@@ -14,7 +15,7 @@ from sympy.parsing.sympy_parser import parse_expr
 
 eqns = [line.strip() for line in open('eqns.txt')]
 unkn = symbols([line.strip() for line in open('Unknowns.txt')])
-count_eqn = []
+eqn_numbering = {}
 edge_data = []
 unknown = ''
 eqn = ''
@@ -22,33 +23,43 @@ listunkn = {}
 #print unkn
 #print eqns
 
+G = nx.MultiDiGraph()
+
 for i in range(0,len(unkn)):
     for k in range(0,len(eqns)):
-        count_eqn.append(k+1)   #Gives an Equation Number
+        eqn_numbering[k+1] = eqns[k]
         eqn = sy.parsing.sympy_parser.parse_expr(eqns[k])
         listunkn[k+1] = str(eqn(k).args)
         if unkn[i] in eqn:
-            edge = (unkn[i],str(k+1))
-            edge_data.append(edge)
-            #edge = (str(k+1),unkn[i])
-            #edge_data.append(edge)
-
-G = nx.DiGraph()
-G.add_edges_from(edge_data)
-nx.write_gml(G, 'network.gml')
+            curr_node = k+1
+            for j in range(k+1,len(eqns)):
+                eqn2 = sy.parsing.sympy_parser.parse_expr(eqns[j]) 
+                if unkn[i] in eqn2:
+                    next_node = j+1
+                    if G.has_edge(curr_node,next_node):
+                        G.add_edge(next_node,curr_node,weight=1,label=str(unkn[i]))
+                    else:
+                        G.add_edge(curr_node,next_node,weight=0.5,label=str(unkn[i]))
 
 Tarjan = nx.strongly_connected_components(G)
+tarjan = tj.topological_sort(G)
+
+Tarjan.reverse()
+
+
 print Tarjan
+print tarjan
 print listunkn
 
-pos = nx.random_layout(G)
-sol = sy.solve(eqns)
+pos = nx.spring_layout(G)
+sypy = sy.sympify(eqns)
+sol = sy.solve(sypy,unkn)
 
-#nx.draw_networkx_nodes(G,pos,node_size=700)
-#nx.draw_networkx_edges(G,pos,edgelist = edge_data,width = 3)
-#nx.draw_networkx_labels(G, pos,font_size=16,font_family='sans-serif')
-nx.draw_spring(G)
+print sol
 
+nx.draw_networkx(G,pos)
+nx.draw_networkx_edge_labels(G,pos)
+#nx.draw_spring(G)
 
 plt.axis('off')
 #plt.savefig('Structure DiGraph')
