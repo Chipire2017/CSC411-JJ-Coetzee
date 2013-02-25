@@ -7,12 +7,13 @@ except:
     raise
 
 import networkx as nx
-import Tarjan as tj
 import sympy as sy
 from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 
 
+#-------------------------------------------------------------------------
+# Extraction of Equations and Graph Creation
 eqns = [line.strip() for line in open('eqns.txt')]
 unkn = symbols([line.strip() for line in open('Unknowns.txt')])
 eqn_numbering = {}
@@ -41,6 +42,10 @@ for i in range(0,len(unkn)):
                     else:
                         G.add_edge(curr_node,next_node,weight=0.5,label=str(unkn[i]))
 
+
+#-------------------------------------------------------------------
+# Tarjan Algorithm and Symbolic Solving of Equations
+
 Tarjan = nx.strongly_connected_components(G)
 x = 0
 soln =0
@@ -67,6 +72,9 @@ for i in range(0,len(Tarjan)):
 
 print Tarjan
 print listunkn
+
+#--------------------------------------------------------------------
+# Drawing of Graph
 
 pos = nx.spring_layout(G)
 sypy = sy.sympify(eqns)
