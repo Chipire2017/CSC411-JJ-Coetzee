@@ -28,13 +28,12 @@ G = nx.MultiDiGraph()
 for unkn in unkns:
     for k in range(0,len(eqns)):
         eqn = sy.parsing.sympy_parser.parse_expr(eqns[k])
-        #listunkn[k+1] = str(eqn(k).args)
         if unkn in eqn:
-            curr_node = k+1
-            for j in range(k+1,len(eqns)):
-                eqn2 = sy.parsing.sympy_parser.parse_expr(eqn)
+            curr_node = k
+            for j in range(k,len(eqns)):
+                eqn2 = sy.parsing.sympy_parser.parse_expr(eqns[j])
                 if unkn in eqn2:
-                    next_node = j+1
+                    next_node = j
                     if G.has_edge(curr_node,next_node):
                         G.add_edge(next_node,curr_node,weight=1,label=str(unkn))
                     else:
@@ -45,7 +44,6 @@ for unkn in unkns:
 # Tarjan Algorithm and Symbolic Solving of Equations
 
 Tarjan = nx.strongly_connected_components(G)
-x = 0
 soln =0
 simu = []
 teller = 0
@@ -56,7 +54,7 @@ for curr in Tarjan:
     for now in curr:
         simu.append(eqns[now])
     eqan = sy.sympify(simu)
-    soln = sy.solve(eqan,unkn)
+    soln = sy.solve(eqan,unkns)
     print soln
 
 print Tarjan
@@ -67,7 +65,7 @@ print Tarjan
 
 pos = nx.spring_layout(G)
 sypy = sy.sympify(eqns)
-sol = sy.solve(sypy,unkn)
+sol = sy.solve(sypy,unkns)
 
 print sol
 
