@@ -4,7 +4,6 @@
 import matplotlib.pyplot as plt
 import networkx as nx
 import sympy as sy
-from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 
 #-------------------------------------------------------------------------
