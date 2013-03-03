@@ -38,9 +38,8 @@ for unknown in unkns:
 Tarjan = nx.strongly_connected_components(G)
 soln = 0
 simu = []
-teller = 0
+
 Tarjan.reverse()
-eqan = []
 
 for curr in Tarjan:
     for now in curr:
