@@ -1,21 +1,16 @@
 #2013-02-11
 #2013-02-16
 
-try:
-    import matplotlib.pyplot as plt
-except:
-    raise
-
+import matplotlib.pyplot as plt
 import networkx as nx
 import sympy as sy
 from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 
-
 #-------------------------------------------------------------------------
 # Extraction of Equations and Graph Creation
-eqns = [line.strip() for line in open('eqns.txt')]
-unkns = symbols([line.strip() for line in open('Unknowns.txt')])
+eqns = [sy.parsing.sympy_parser.parse_expr(line) for line in open('eqns.txt')]
+unkns = [x for x in set.union(*(eq.atoms() for eq in eqns)) if x.is_Symbol]
 edge_data = []
 unknown = ''
 
@@ -25,19 +20,17 @@ listunkn = {}
 
 G = nx.MultiDiGraph()
 
-for unkn in unkns:
-    for k in range(0,len(eqns)):
-        eqn = sy.parsing.sympy_parser.parse_expr(eqns[k])
-        if unkn in eqn:
-            curr_node = k
-            for j in range(k,len(eqns)):
-                eqn2 = sy.parsing.sympy_parser.parse_expr(eqns[j])
-                if unkn in eqn2:
-                    next_node = j
-                    if G.has_edge(curr_node,next_node):
-                        G.add_edge(next_node,curr_node,weight=1,label=str(unkn))
+for unknown in unkns:
+    for curr_node, eqn in enumerate(eqns):
+        if unknown in eqn:
+            for next_node in range(curr_node, len(eqns)):
+                eqn2 = eqns[next_node]
+                if unknown in eqn2:
+                    if G.has_edge(curr_node, next_node):
+                        weight = 1
                     else:
-                        G.add_edge(curr_node,next_node,weight=0.5,label=str(unkn))
+                        weight = 0.5
+                    G.add_edge(next_node,curr_node,weight=weight,label=str(unknown))
 
 
 #-------------------------------------------------------------------
