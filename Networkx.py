@@ -29,14 +29,14 @@ for unknown in unkns:
                         weight = 1
                     else:
                         weight = 0.5
-                    G.add_edge(next_node,curr_node,weight=weight,label=str(unknown))
+                    G.add_edge(next_node, curr_node, weight=weight, label=str(unknown))
 
 
 #-------------------------------------------------------------------
 # Tarjan Algorithm and Symbolic Solving of Equations
 
 Tarjan = nx.strongly_connected_components(G)
-soln =0
+soln = 0
 simu = []
 teller = 0
 Tarjan.reverse()
@@ -46,7 +46,7 @@ for curr in Tarjan:
     for now in curr:
         simu.append(eqns[now])
     eqan = sy.sympify(simu)
-    soln = sy.solve(eqan,unkns)
+    soln = sy.solve(eqan, unkns)
     print soln
 
 print Tarjan
@@ -57,16 +57,14 @@ print Tarjan
 
 pos = nx.spring_layout(G)
 sypy = sy.sympify(eqns)
-sol = sy.solve(sypy,unkns)
+sol = sy.solve(sypy, unkns)
 
 print sol
 
-nx.draw_networkx(G,pos)
-nx.draw_networkx_edge_labels(G,pos)
+nx.draw_networkx(G, pos)
+nx.draw_networkx_edge_labels(G, pos)
 #nx.draw_spring(G)
 
 plt.axis('off')
 #plt.savefig('Structure DiGraph')
 plt.show()
-
-
