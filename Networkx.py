@@ -1,6 +1,3 @@
-#2013-02-11
-#2013-02-16
-
 try:
     import matplotlib.pyplot as plt
 except:
@@ -16,12 +13,6 @@ from sympy.parsing.sympy_parser import parse_expr
 # Extraction of Equations and Graph Creation
 eqns = [line.strip() for line in open('eqns.txt')]
 unkns = symbols([line.strip() for line in open('Unknowns.txt')])
-edge_data = []
-unknown = ''
-
-listunkn = {}
-#print unkn
-#print eqns
 
 G = nx.MultiDiGraph()
 
@@ -44,21 +35,18 @@ for unkn in unkns:
 # Tarjan Algorithm and Symbolic Solving of Equations
 
 Tarjan = nx.strongly_connected_components(G)
-soln =0
+
 simu = []
-teller = 0
 Tarjan.reverse()
-eqan = []
 
 for curr in Tarjan:
     for now in curr:
         simu.append(eqns[now])
-    eqan = sy.sympify(simu)
-    soln = sy.solve(eqan,unkns)
+    soln = sy.solve(simu,unkns)
     print soln
 
 print Tarjan
-#print listunkn
+
 
 #--------------------------------------------------------------------
 # Drawing of Graph
@@ -71,10 +59,8 @@ print sol
 
 nx.draw_networkx(G,pos)
 nx.draw_networkx_edge_labels(G,pos)
-#nx.draw_spring(G)
 
 plt.axis('off')
-#plt.savefig('Structure DiGraph')
 plt.show()
 
 
