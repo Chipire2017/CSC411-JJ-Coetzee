@@ -1,6 +1,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 try:
     import matplotlib.pyplot as plt
 except:
@@ -11,12 +12,17 @@ except:
 >>>>>>> origin/merge
 =======
 >>>>>>> origin/merge
+=======
+>>>>>>> origin/merge
 #2013-02-11
 #2013-02-16
 
 import matplotlib.pyplot as plt
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> origin/merge
+=======
 >>>>>>> origin/merge
 =======
 >>>>>>> origin/merge
@@ -31,9 +37,12 @@ from sympy.parsing.sympy_parser import parse_expr
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 eqns = [line.strip() for line in open('eqns.txt')]
 unkns = symbols([line.strip() for line in open('Unknowns.txt')])
 =======
+=======
+>>>>>>> origin/merge
 =======
 >>>>>>> origin/merge
 =======
@@ -70,8 +79,14 @@ Tarjan = nx.strongly_connected_components(G)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 simu = []
+=======
+soln = 0
+simu = []
+
+>>>>>>> origin/merge
 =======
 soln = 0
 simu = []
@@ -99,6 +114,9 @@ for curr in Tarjan:
     soln = sy.solve(eqan, unkns)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> origin/merge
+=======
 >>>>>>> origin/merge
 =======
 >>>>>>> origin/merge
@@ -121,9 +139,12 @@ print sol
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 nx.draw_networkx(G,pos)
 nx.draw_networkx_edge_labels(G,pos)
 =======
+=======
+>>>>>>> origin/merge
 =======
 >>>>>>> origin/merge
 =======
