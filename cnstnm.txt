@@ -1,0 +1,13 @@
+L/D
+D
+pL
+pV
+lambda
+Cpavg
+Tref
+F
+B
+sigma
+frac
+n
+hr
