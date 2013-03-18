@@ -247,7 +247,7 @@ def solv():
     for nm in dSpb.keys():
         for var in sp:
             if nm == str(var):
-                dSpb[nm].insert(0,sp.get(var))
+                dSpb[nm].insert(1, sp.get(var))
                 print sp.get(var)
         
     print "Solve Ran to Competion"

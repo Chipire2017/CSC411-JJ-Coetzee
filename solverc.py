@@ -33,11 +33,11 @@ def solvr():
                 tel = 0
                 eq = eqns[now]
                 var = unkns[now]     #Find current unknown - not robust at all
-                solv = solve(eq,var)
-                eqns[now].replace(var,solv[0])
+                solv = solve(eq, var)
+                eqns[now].subs(var, solv[0])
                 val = solv[0]
                 for repl in eqns:    #Replace unknowns with values in equations
-                    repl = repl.subs(var,val)
+                    repl = repl.subs(var, val)
                     eqns[tel] = repl
                     tel +=1
                 sol[var] = solv[0]
@@ -46,7 +46,7 @@ def solvr():
             for now in curr:
                 simu.append(eqns[now])
                 mul_var.append(unkns[now])
-            soln = sy.solve(simu,unkns)
+            soln = sy.solve(simu, unkns)
             
             sol = dict(sol.items() + soln.items())
     for key in sol:
