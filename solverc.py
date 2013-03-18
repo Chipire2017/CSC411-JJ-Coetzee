@@ -34,7 +34,7 @@ def solvr():
                 eq = eqns[now]
                 var = unkns[now]     #Find current unknown - not robust at all
                 solv = solve(eq, var)
-                eqns[now].subs(var, solv[0])
+                #eqns[now].subs(var, solv[0])
                 val = solv[0]
                 for repl in eqns:    #Replace unknowns with values in equations
                     repl = repl.subs(var, val)
