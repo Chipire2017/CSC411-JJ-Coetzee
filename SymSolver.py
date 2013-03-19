@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
 import networkx as nx
 import sympy as sy
+from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
+
 
 #-------------------------------------------------------------------------
 # Extraction of Equations and Graph Creation
@@ -18,15 +20,15 @@ for unkn in unkns:
                     if G.has_edge(curr_node,next_node):
                         G.add_edge(next_node,curr_node,weight=1,label=str(unkn))
                     else:
-                        weight = 0.5
-                    G.add_edge(next_node, curr_node, weight=weight, label=str(unknown))
+                        G.add_edge(curr_node,next_node,weight=0.5,label=str(unkn))
+
 
 #-------------------------------------------------------------------
 # Tarjan Algorithm and Symbolic Solving of Equations
 
 Tarjan = nx.strongly_connected_components(G)
-simu = []
 
+simu = []
 Tarjan.reverse()
 
 for curr in Tarjan:
@@ -43,7 +45,7 @@ print Tarjan
 
 pos = nx.spring_layout(G)
 sypy = sy.sympify(eqns)
-sol = sy.solve(sypy, unkns)
+sol = sy.solve(sypy,unkns)
 
 print sol
 
@@ -52,3 +54,5 @@ nx.draw_networkx_edge_labels(G,pos)
 
 plt.axis('off')
 plt.show()
+
+
