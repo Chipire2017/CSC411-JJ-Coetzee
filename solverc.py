@@ -4,10 +4,28 @@ from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 
 
-def solvr():
+def solvr(specV,cnst):
     eqns = [sy.parsing.sympy_parser.parse_expr(line) for line in open('eqns.txt')]
     unkns = [x for x in set.union(*(eq.atoms() for eq in eqns)) if x.is_Symbol]
 
+    for unkn in unkns:
+        for nm, value in specV.iteritems():
+            if nm == str(unkn):
+                tel = 0
+                for eq in eqns:  
+                    if nm in str(eq):
+                        eq = eq.subs(nm, value)
+                        eqns[tel] = eq
+                    tel = tel + 1
+        for ct, val in cnst.iteritems():
+            if ct == str(unkn):
+                tel = 0
+                for eq in eqns:  
+                    if ct in str(eq):
+                        eq = eq.subs(ct, val)
+                        eqns[tel] = eq
+                    tel = tel + 1
+                        
     G = nx.MultiDiGraph()
 
     for unkn in unkns:
@@ -24,8 +42,10 @@ def solvr():
 
     simu = []
     sol = {}
+    solf = []
     Tarjan.reverse()
     mul_var = []
+
 
     for curr in Tarjan:
         if len(curr) == 1:
