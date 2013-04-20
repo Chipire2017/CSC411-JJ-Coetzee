@@ -87,10 +87,11 @@ def framec():
         while (i < len(cnstnm)) and (col <= (mcol-1)):
             lfrc = LabelFrame(dFr['frc'], text = cnstnm[i], labelanchor = 'nw')
 
-            dCspb[cnstnm[i]] = Spinbox(lfrc,width = 6)
+            dCspb[cnstnm[i]] = Spinbox(lfrc,width = 6,from_ = 0,to=1000000, format = '%0.2f', increment = 0.01)
+            dCspb[cnstnm[i]].delete(0,last=END)
             dCspb[cnstnm[i]].insert(0,dCnst[cnstnm[i]])
             dCspb[cnstnm[i]].grid(row = 0, column = 0, padx = '1c',pady = '0.2c')
-            dCspb[cnstnm[i]].event_add ( "<<allcnst>>", "<Button-1>", "<KP_Enter>" ,"<FocusOut>")
+            dCspb[cnstnm[i]].event_add ( "<<allcnst>>", "<Button-1>", "<KP_Enter>" ,"<FocusOut>","<Up>","<Down>")
             dCspb[cnstnm[i]].bind("<<allcnst>>", cnstok)
             lc = Label(lfrc, text = cnstnm[i]) #Will add units later
             lc.grid(row = 0, column = 1, padx = '1c')
@@ -119,7 +120,7 @@ def cnstok(event):
             dCnst[nmc] = float(dCspb[nmc].get())
         print dCnst
 
-# Insert original constants
+# Insert original constants, 
 def btco():
     cnsts = np.loadtxt('const.txt')
     [dCspb[nm].insert(0,cnsts[i]) for i, nm in enumerate(cnstnm)]
@@ -144,10 +145,11 @@ def frame1():
             # create a new frame for each iteration in the loop
             lfr = LabelFrame(dFr['fr1'], text = names[i], labelanchor = 'nw')
 
-            dSpb[names[i]] = Spinbox(lfr,width = 5)
+            dSpb[names[i]] = Spinbox(lfr, width = 5, from_ = -100000, to = 100000, increment = 0.01, format = '%0.2f')
             dSpb[names[i]].grid()
             dSpb[names[i]].event_add ( "<<allspb>>", "<Button-1>", "<KP_Enter>" ,"<FocusOut>")
             dSpb[names[i]].bind("<<allspb>>", sav)
+            dSpb[names[i]].delete(0,last=END)
             dScl[names[i]] = Scale(lfr,orient=HORIZONTAL,length = '4c')
             dScl[names[i]].grid()
             lfr.grid(row = rownos, column = colnos, sticky = W+E,pady = '0.3c', padx = '0.1c')
@@ -247,7 +249,8 @@ def solv():
     for nm in dSpb.keys():
         for var in sp:
             if nm == str(var):
-                dSpb[nm].insert(1, sp.get(var))
+                dSpb[nm].delete(0,last=END)
+                dSpb[nm].insert(0, sp.get(var))
                 print sp.get(var)
         
     print "Solve Ran to Competion"

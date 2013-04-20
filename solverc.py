@@ -50,5 +50,6 @@ def solvr():
             
             sol = dict(sol.items() + soln.items())
     for key in sol:
-        sol[key] = str(float(sol.get(key)))    
+        sol[key] = float(sol.get(key))
+        sol[key] = '%0.2f' % sol[key]
     return sol
