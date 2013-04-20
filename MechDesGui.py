@@ -60,20 +60,20 @@ def createWidgets(form,names):
     frtbpt = Frame(frtb)
     frtbpt.grid(row = 0, column = 1)
     # Page index buttons (tab).
-    pc = Button(frtbpt, text="Constants",command = dispc)
+    pc = Button(frtbpt, text="Constants",  command=change_to_frame('frc'))
     pc.grid(row = 0, column = 0)
-    p1 = Button(frtbpt, text="1",command = disp1)
+    p1 = Button(frtbpt, text="1", command=change_to_frame('fr1'))
     p1.grid(row = 0, column = 1)
-    p2 = Button(frtbpt, text="2",command = disp2)
+    p2 = Button(frtbpt, text="2", command=change_to_frame('fr2'))
     p2.grid(row = 0, column = 2)
-    p3 = Button(frtbpt, text="3",command = disp3)
+    p3 = Button(frtbpt, text="3", command=change_to_frame('fr3'))
     p3.grid(row = 0, column = 3)
 
 # Frame containing all widgets pertaining to constants
 def framec():
     # Frame for all the small variable frames
     dFr['frc'] = Canvas(dFr['fr'],scrollregion = (0,0,1024,768))
-    dBtn['bc'] = Button(dFr['frc'], text = "Constants Specified, Continue?", command = disp1)
+    dBtn['bc'] = Button(dFr['frc'], text = "Constants Specified, Continue?", command=change_to_frame('fr1'))
     dBtn['bc'].grid(columnspan =3, rowspan = 2, sticky = N+S+W+E)
     dBtn['lpc'] = Label(dFr['frc'], text = "Constants fully specified")
     dBtn['lpcn'] = Label(dFr['frc'], text = " Constants have not been specified")
@@ -187,33 +187,13 @@ def frame4():
     lp4.grid(row = 1, column = 2, pady = '2c')
 
 #Display relevant frame and remove the other (don't forget)
-def dispc():
-    rqrd = 'frc'
-    crnt = dvar['crnt']
-    dFr[crnt].grid_remove()
-    dFr[rqrd].grid(row = 1, column = 0)
-    dvar['crnt'] = rqrd
-
-def disp1():
-    rqrd = 'fr1'
-    crnt = dvar['crnt']
-    dFr[crnt].grid_remove()
-    dFr[rqrd].grid(row = 1, column = 0)
-    dvar['crnt'] = rqrd
-
-def disp2():
-    rqrd = 'fr2'
-    crnt = dvar['crnt']
-    dFr[crnt].grid_remove()
-    dFr[rqrd].grid(row = 1, column = 0)
-    dvar['crnt'] = rqrd
-
-def disp3():
-    rqrd = 'fr3'
-    crnt = dvar['crnt']
-    dFr[crnt].grid_remove()
-    dFr[rqrd].grid(row = 1, column = 0)
-    dvar['crnt'] = rqrd
+def change_to_frame(newframe):
+    def changer():
+        currentframe = dvar['crnt']
+        dFr[currentframe].grid_remove()
+        dFr[newframe].grid(row = 1, column = 0)
+        dvar['crnt'] = newframe
+    return changer
 
 # Function which takes updates entry widgets when variables become specified from mofifier
 def sav(event):

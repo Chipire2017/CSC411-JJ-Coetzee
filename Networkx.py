@@ -18,7 +18,8 @@ for unkn in unkns:
                     if G.has_edge(curr_node,next_node):
                         G.add_edge(next_node,curr_node,weight=1,label=str(unkn))
                     else:
-                        G.add_edge(curr_node,next_node,weight=0.5,label=str(unkn))
+                        weight = 0.5
+                    G.add_edge(next_node, curr_node, weight=weight, label=str(unknown))
 
 #-------------------------------------------------------------------
 # Tarjan Algorithm and Symbolic Solving of Equations
