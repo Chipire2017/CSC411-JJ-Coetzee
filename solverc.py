@@ -5,8 +5,19 @@ from sympy.parsing.sympy_parser import parse_expr
 
 
 def solvr(specV,cnst):
-    eqns = [sy.parsing.sympy_parser.parse_expr(line) for line in open('eqns.txt')]
+    all_eqns = [sy.parsing.sympy_parser.parse_expr(line) for line in open('eqns.txt')]
+
+    eqns = []
+    inequ = {}
+    for eq in all_eqns:
+        if not isinstance(eq, tuple):
+            eqns.append(eq)             #Create list of equations
+        else:
+            inequ[eq[1]] = eq[0]        #Put inequalities in dictionary
+            
     unkns = [x for x in set.union(*(eq.atoms() for eq in eqns)) if x.is_Symbol]
+    print 'Equations'
+    print eqns
 
     for unkn in unkns:
         for nm, value in specV.iteritems():
@@ -26,7 +37,7 @@ def solvr(specV,cnst):
                         eqns[tel] = eq
                     tel = tel + 1
                         
-    G = nx.MultiDiGraph()
+    G = nx.Graph()
 
     for unkn in unkns:
         for curr_node in range(0,len(eqns)):
@@ -46,7 +57,6 @@ def solvr(specV,cnst):
     Tarjan.reverse()
     mul_var = []
 
-
     for curr in Tarjan:
         if len(curr) == 1:
             for now in curr:
@@ -54,7 +64,6 @@ def solvr(specV,cnst):
                 eq = eqns[now]
                 var = unkns[now]     #Find current unknown - not robust at all
                 solv = solve(eq, var)
-                #eqns[now].subs(var, solv[0])
                 val = solv[0]
                 for repl in eqns:    #Replace unknowns with values in equations
                     repl = repl.subs(var, val)
@@ -65,11 +74,11 @@ def solvr(specV,cnst):
             tel = len(sol)
             for now in curr:
                 simu.append(eqns[now])
-                mul_var.append(unkns[now])
+                #mul_var.append(unkns[now])
             soln = sy.solve(simu, unkns)
             
             sol = dict(sol.items() + soln.items())
-    for key in sol:
+    for key in sol:            
         sol[key] = float(sol.get(key))
         sol[key] = '%0.2f' % sol[key]
-    return sol
+    return sol,eqns
