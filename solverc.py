@@ -3,9 +3,8 @@ import sympy as sy
 from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 
-
-def solvr(specV,cnst):
-    all_eqns = [sy.parsing.sympy_parser.parse_expr(line) for line in open('eqns.txt')]
+def readeqns(filename):
+    all_eqns = [sy.parsing.sympy_parser.parse_expr(line) for line in open(filename)]
 
     eqns = []
     inequ = {}
@@ -14,16 +13,21 @@ def solvr(specV,cnst):
             eqns.append(eq)             #Create list of equations
         else:
             inequ[eq[1]] = eq[0]        #Put inequalities in dictionary
-            
+
     unkns = [x for x in set.union(*(eq.atoms() for eq in eqns)) if x.is_Symbol]
     print 'Equations'
     print eqns
+    return eqns, inequ
+
+def solvr(specV, cnst, filename):
+    # TODO: Split this into smaller functions
+    eqns, inequ = readeqns(filename)
 
     for unkn in unkns:
         for nm, value in specV.iteritems():
             if nm == str(unkn):
                 tel = 0
-                for eq in eqns:  
+                for eq in eqns:
                     if nm in str(eq):
                         eq = eq.subs(nm, value)
                         eqns[tel] = eq
@@ -31,13 +35,13 @@ def solvr(specV,cnst):
         for ct, val in cnst.iteritems():
             if ct == str(unkn):
                 tel = 0
-                for eq in eqns:  
+                for eq in eqns:
                     if ct in str(eq):
                         eq = eq.subs(ct, val)
                         eqns[tel] = eq
                     tel = tel + 1
-                        
-    G = nx.Graph()
+
+    G = nx.DiGraph()
 
     for unkn in unkns:
         for curr_node in range(0,len(eqns)):
@@ -76,9 +80,9 @@ def solvr(specV,cnst):
                 simu.append(eqns[now])
                 #mul_var.append(unkns[now])
             soln = sy.solve(simu, unkns)
-            
+
             sol = dict(sol.items() + soln.items())
-    for key in sol:            
+    for key in sol:
         sol[key] = float(sol.get(key))
         sol[key] = '%0.2f' % sol[key]
     return sol,eqns

@@ -244,7 +244,7 @@ def solv():
             specv[nm] = float((dSpb[nm].get()))
             
     print specv
-    sp, eqns = sc.solvr(specv,dCnst)
+    sp, eqns = sc.solvr(specv, dCnst, 'eqns.txt')
     print sp
     for nm in dSpb.keys():
         for var in sp:
