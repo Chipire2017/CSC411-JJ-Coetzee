@@ -55,39 +55,61 @@ def Tarjan(eqns, unkns):
                 for next_node in range(curr_node,len(eqns)):
                     if unkn in eqns[next_node]:
                         if G.has_edge(curr_node,next_node):
-                            G.add_edge(next_node,curr_node,weight=1,label=str(unkn))
+                            G.add_edge(next_node,curr_node,label=str(unkn))
                         else:
-                            G.add_edge(curr_node,next_node,weight=0.5,label=str(unkn))
+                            G.add_edge(curr_node,next_node,label=str(unkn))
 
     Tjan = nx.strongly_connected_components(G)
     Tjan.reverse()
     
     return Tjan
     
+def SortTarjan(Tjan, eqns, unkns):
+
+    seq = []
+    for curr in Tjan: 
+        if len(curr) == 1:
+            seq.append(curr[0])
+    print seq        
+    for eq in seq:
+        num_unk = len(sorted(eqns[eq].atoms(sy.Symbol)))
+        for nxt_eq in range(eq,len(seq)):
+            num_unk2 = len(sorted(eqns[nxt_eq].atoms(sy.Symbol)))
+            if num_unk2 < num_unk:
+                Tjan[nxt_eq], Tjan[eq] = Tjan[eq], Tjan[nxt_eq] 
+                
+                
+                
+            
+    return Tjan
+
 
 def solvr(specV, cnst, filename):
-    # TODO: Split this into smaller functions
     eqns, inequ, unkns = readeqns(filename)
     eqns, unkns = InsertKnowns(specV, cnst, eqns, unkns) 
     Tjan = Tarjan(eqns, unkns)  
+    TjanSort = SortTarjan(Tjan, eqns, unkns)
+    print TjanSort
     
     simu = []
     sol = {}
     
     
-    for curr in Tjan:
+    for curr in TjanSort:
         if len(curr) == 1:
             for now in curr:
                 tel = 0
                 eq = eqns[now]
-                var = unkns[now]     #Find current unknown - not robust at all
-                solv = solve(eq, var)
+                var = sorted(eqns[now].atoms(sy.Symbol))   
+                print "Current variable is", var
+                solv = sy.solve(eq, var)
                 val = solv[0]
+                print "current val", val
                 for repl in eqns:    #Replace unknowns with values in equations
-                    repl = repl.subs(var, val)
+                    repl = repl.subs(var[0], val)
                     eqns[tel] = repl
                     tel +=1
-                sol[var] = solv[0]
+                sol[var[0]] = val
         elif len(curr) > 1:
             tel = len(sol)
             for now in curr:
