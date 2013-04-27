@@ -1,6 +1,7 @@
 import networkx as nx
 import sympy as sy
-from sympy import *
+import test_solver as ts
+#from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 
 def readeqns(filename):
@@ -17,11 +18,10 @@ def readeqns(filename):
     unkns = [x for x in set.union(*(eq.atoms() for eq in eqns)) if x.is_Symbol]
     print 'Equations'
     print eqns
-    return eqns, inequ
+    return eqns, inequ, unkns
+    
+def InsertKnowns(specV, cnst, eqns, unkns):
 
-def solvr(specV, cnst, filename):
-    # TODO: Split this into smaller functions
-    eqns, inequ = readeqns(filename)
 
     for unkn in unkns:
         for nm, value in specV.iteritems():
@@ -40,6 +40,12 @@ def solvr(specV, cnst, filename):
                         eq = eq.subs(ct, val)
                         eqns[tel] = eq
                     tel = tel + 1
+    
+    return eqns, unkns
+
+    
+def Tarjan(eqns, unkns):
+    
 
     G = nx.DiGraph()
 
@@ -53,15 +59,23 @@ def solvr(specV, cnst, filename):
                         else:
                             G.add_edge(curr_node,next_node,weight=0.5,label=str(unkn))
 
-    Tarjan = nx.strongly_connected_components(G)
+    Tjan = nx.strongly_connected_components(G)
+    Tjan.reverse()
+    
+    return Tjan
+    
 
+def solvr(specV, cnst, filename):
+    # TODO: Split this into smaller functions
+    eqns, inequ, unkns = readeqns(filename)
+    eqns, unkns = InsertKnowns(specV, cnst, eqns, unkns) 
+    Tjan = Tarjan(eqns, unkns)  
+    
     simu = []
     sol = {}
-    solf = []
-    Tarjan.reverse()
-    mul_var = []
-
-    for curr in Tarjan:
+    
+    
+    for curr in Tjan:
         if len(curr) == 1:
             for now in curr:
                 tel = 0
@@ -86,3 +100,5 @@ def solvr(specV, cnst, filename):
         sol[key] = float(sol.get(key))
         sol[key] = '%0.2f' % sol[key]
     return sol,eqns
+    
+    ts.TarjanTest
