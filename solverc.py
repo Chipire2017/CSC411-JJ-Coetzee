@@ -16,13 +16,11 @@ def readeqns(filename):
             inequ[eq[1]] = eq[0]        #Put inequalities in dictionary
 
     unkns = [x for x in set.union(*(eq.atoms() for eq in eqns)) if x.is_Symbol]
-    print 'Equations'
-    print eqns
     return eqns, inequ, unkns
     
 def InsertKnowns(specV, cnst, eqns, unkns):
 
-
+    print unkns
     for unkn in unkns:
         for nm, value in specV.iteritems():
             if nm == str(unkn):
@@ -31,16 +29,19 @@ def InsertKnowns(specV, cnst, eqns, unkns):
                     if nm in str(eq):
                         eq = eq.subs(nm, value)
                         eqns[tel] = eq
+                        print unkns             
                     tel = tel + 1
+                del unkns[unkns.index(unkn)]
         for ct, val in cnst.iteritems():
             if ct == str(unkn):
                 tel = 0
                 for eq in eqns:
                     if ct in str(eq):
                         eq = eq.subs(ct, val)
-                        eqns[tel] = eq
+                        eqns[tel] = eq            
+        
                     tel = tel + 1
-    
+        
     return eqns, unkns
 
     
@@ -69,8 +70,7 @@ def SortTarjan(Tjan, eqns, unkns):
     seq = []
     for curr in Tjan: 
         if len(curr) == 1:
-            seq.append(curr[0])
-    print seq        
+            seq.append(curr[0])        
     for eq in seq:
         num_unk = len(sorted(eqns[eq].atoms(sy.Symbol)))
         for nxt_eq in range(eq,len(seq)):
@@ -84,16 +84,12 @@ def SortTarjan(Tjan, eqns, unkns):
     return Tjan
 
 
-def solvr(specV, cnst, filename):
-    eqns, inequ, unkns = readeqns(filename)
-    eqns, unkns = InsertKnowns(specV, cnst, eqns, unkns) 
+def solvr(eqns, unkns): 
     Tjan = Tarjan(eqns, unkns)  
     TjanSort = SortTarjan(Tjan, eqns, unkns)
-    print TjanSort
     
     simu = []
     sol = {}
-    
     
     for curr in TjanSort:
         if len(curr) == 1:
@@ -101,10 +97,8 @@ def solvr(specV, cnst, filename):
                 tel = 0
                 eq = eqns[now]
                 var = sorted(eqns[now].atoms(sy.Symbol))   
-                print "Current variable is", var
                 solv = sy.solve(eq, var)
                 val = solv[0]
-                print "current val", val
                 for repl in eqns:    #Replace unknowns with values in equations
                     repl = repl.subs(var[0], val)
                     eqns[tel] = repl
@@ -121,6 +115,6 @@ def solvr(specV, cnst, filename):
     for key in sol:
         sol[key] = float(sol.get(key))
         sol[key] = '%0.2f' % sol[key]
-    return sol,eqns
+    return sol
     
     ts.TarjanTest

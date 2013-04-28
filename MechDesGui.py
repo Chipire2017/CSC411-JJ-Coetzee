@@ -6,10 +6,8 @@ Created on 03 Apr 2011
 """
 from __future__ import division
 from Tkinter import *
-import csv
 from math import *
 import numpy as np
-import itertools
 import eqtn
 import solverc as sc
 
@@ -22,7 +20,11 @@ dvar = {}
 specv = {}
 sp = {}
 dBtn = {}
+lblDOF = {}
 dvar['crnt'] = 'frc'
+DOFtxt = "Click on Spinbox to Calculate DOF"
+eqns, inequ, unkns = sc.readeqns('eqns.txt')
+
 
 # Read info about names and equations
 names = [line.strip() for line in open('Unknowns.txt')]
@@ -50,7 +52,7 @@ def createWidgets(form,names):
     # tb buttons
     bproc = Button(frtbb, text = "Save", command = sav) #  bind to udpent (update entry)
     bproc.grid(row = 0, column = 0)
-    bsol = Button(frtbb, text = "Solve", command = solv) #  bind to udpent (update entry)
+    bsol = Button(frtbb, text = "Solve", command = SolveClick) #  bind to udpent (update entry)
     bsol.grid(row = 0, column = 1)
     bclr = Button(frtbb, text = "Clear", command = clrspb)
     bclr.grid(row = 0, column = 2)
@@ -135,9 +137,17 @@ def frame1():
 
     # Frame for each labelframes
     dFr['fr1'] = Canvas(dFr['fr'],scrollregion = (0,0,1024,768))
+   
+     # Frame showing number of DOF
 
+    frDOF = LabelFrame(dFr['fr1'], text = "DOF", labelanchor='nw')
+    
+    lblDOF['DOF'] = Label(frDOF, text=DOFtxt, padx=3, pady=3)
+    lblDOF['DOF'].grid()
+    frDOF.grid(row=0, column=0, sticky='NW', padx='0.1c', pady='0.3c') 
+    
     # Place frame (label and edit) for each variable in names
-    rownos = 0
+    rownos = 1
     i = 0
     while (i < (len(names))):
         colnos = 0
@@ -147,14 +157,15 @@ def frame1():
 
             dSpb[names[i]] = Spinbox(lfr, width = 5, from_ = -100000, to = 100000, increment = 0.01, format = '%0.2f')
             dSpb[names[i]].grid()
-            dSpb[names[i]].event_add ( "<<allspb>>", "<Button-1>", "<KP_Enter>" ,"<FocusOut>")
+            dSpb[names[i]].event_add ( "<<allspb>>", "<Button-1>", "<KP_Enter>" ,"<FocusIn>")
             dSpb[names[i]].bind("<<allspb>>", sav)
+           # dSpb[names[i]].bind("<Button-1>", dSpbClick)
+            dSpb[names[i]].bind("<FocusIn>", dSpbClick)
             dSpb[names[i]].delete(0,last=END)
             dScl[names[i]] = Scale(lfr,orient=HORIZONTAL,length = '4c')
             dScl[names[i]].grid()
             lfr.grid(row = rownos, column = colnos, sticky = W+E,pady = '0.3c', padx = '0.1c')
-
-
+            
             i = i + 1
             colnos = colnos + 1
         rownos = rownos + 1
@@ -162,7 +173,8 @@ def frame1():
     scrollY = Scrollbar (dFr['fr1'],orient=VERTICAL, command = dFr['fr1'].yview )
     scrollY.grid (row = 0, rowspan = rownos, column=mcol+1, sticky=N+S+E )
     dFr['fr1']["yscrollcommand"] = scrollY.set
-
+    
+   
 def frame2():
     dFr['fr2'] = Canvas(dFr['fr'],scrollregion = (0,0,1024,768))
     bp2 = Button(dFr['fr2'],text = "Page 2 Inactive")
@@ -217,11 +229,12 @@ def disp3():
 
 # Function which takes updates entry widgets when variables become specified from mofifier
 def sav(event):
-    for nm in dSpb.keys():
-        if dSpb[nm].get() <> '':
-            specv[nm] = float(dSpb[nm].get())
+    return
+    #for nm in dSpb.keys():
+       # if dSpb[nm].get() <> '':
+            #specv[nm] = float(dSpb[nm].get())
             #defV(specv, names, incidence, nm, float(dSpb[nm].get()))
-    print specv
+   # print specv
 
 # Clear whichever field is in view
 def clrspb():
@@ -229,33 +242,73 @@ def clrspb():
         for vspb in dSpb.keys():
             dSpb[vspb].delete(0,last=END)
             dSpb[vspb].insert(0,'')
-        sp = {}
+        sp.clear()
+        specv.clear()
     if dvar['crnt'] == 'frc':
         for vcspb in dCspb.keys():
             dCspb[vcspb].delete(0,last=END)
             dCspb[vcspb].insert(0,'')
         dCnst = {}
     
-
+    
+    
+# calculate Degrees of freedom
+def DOF(eqns, unkns):
+    DeOF = len(unkns)-len(eqns)
+    return DeOF    
+    
+# Define Click on Spinbox
+def dSpbClick(event):    
+    eqns, inequ, unkns = sc.readeqns('eqns.txt')
+    DeOF = DOF(eqns, unkns)
+    
+    lblDOF['DOF'].config(text="Specify %s variables" %str(DeOF))
+    lblDOF['DOF'].update_idletasks()
+    
 # Call solve
-def solv():
-    for nm in dSpb.keys():
-        if dSpb[nm].get() <> '':
-            specv[nm] = float((dSpb[nm].get()))
-            
-    print specv
-    sp, eqns = sc.solvr(specv, dCnst, 'eqns.txt')
-    print sp
-    for nm in dSpb.keys():
-        for var in sp:
-            if nm == str(var):
-                dSpb[nm].delete(0,last=END)
-                dSpb[nm].insert(0, sp.get(var))
-                print sp.get(var)
+def solv(eqns, unkns): 
+    print eqns, unkns
+    DeOF = DOF(eqns, unkns)
+    print 'DOF is', DeOF
+    while DeOF > 0:
+#        curr_spb = 
+#       specv[curr_spb] = float((dSpb[curr_spb].get()))
+        for nm in dSpb.keys():
+           if dSpb[nm].get() <> '':
+                specv[nm] = float((dSpb[nm].get()))
+        print specv
+        eqns, unkns = sc.InsertKnowns(specv, dCnst, eqns, unkns)
+        print eqns, unkns
+        DeOF = DOF(eqns, unkns)
+        lblDOF['DOF'].config(text="Specify %s variables" %str(DeOF+1))
+        lblDOF['DOF'].update_idletasks()
+    specv.clear() 
+    if DeOF == 0:
         
-    print "Solve Ran to Competion"
-    print sp
-    print eqns
+        sp = sc.solvr(eqns, unkns)
+        print sp
+        for nm in dSpb.keys():
+            for var in sp:
+                if nm == str(var):
+                    dSpb[nm].delete(0,last=END)
+                    dSpb[nm].insert(0, sp.get(var)) 
+        
+        lblDOF['DOF'].config(text="System fully specified")
+        lblDOF['DOF'].update_idletasks()
+        eqns, inequ, unkns = sc.readeqns('eqns.txt')
+        DeOF = DOF(eqns, unkns)
+        print "Solve Ran to Competion"
+    else:
+        print "System overspecified"
+    
+    print 'eqns now is', eqns, DeOF
+    return eqns, unkns
+    
+# Define Solve Click event
+def SolveClick():
+    print 'Ahhhhhh', eqns
+    solv(eqns, unkns)
+    return        
 
 def odc():
     form = Tk()
@@ -268,3 +321,4 @@ def odc():
     form.mainloop()
 
 odc()
+
