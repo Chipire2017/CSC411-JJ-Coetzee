@@ -11,314 +11,315 @@ import numpy as np
 import eqtn
 import solverc as sc
 
-#Initialize dictionaries (use throughout module)
-dFr = {}
-dScl = {}
 dSpb = {}
+dScl = {}
 dCspb = {}
-dvar = {}
-specv = {}
-sp = {}
-dBtn = {}
-lblDOF = {}
-dvar['crnt'] = 'frc'
-DOFtxt = "Click on Spinbox to Calculate DOF"
-eqns, inequ, unkns = sc.readeqns('eqns.txt')
 
-
-# Read info about names and equations
-names = [line.strip() for line in open('Unknowns.txt')]
-cnstnm = [line.strip() for line in open('cnstnm.txt')]
-incidence = np.loadtxt('base.txt')
-cnsts = [float(line.strip()) for line in open('const.txt')]
-#eqns = [line.strip() for line in open('eqns.txt')]
-dCnst = dict(zip(cnstnm,cnsts))
-#specced = {'Lo' : 11, 'mV' : 2300, 'V1' : 234, 'mL' : 12}
-
-# Function to create widgets
-def createWidgets(form,names):
-
-    # Frame holding everything
-    dFr['fr'] = Frame(form)
-    dFr['fr'].grid()
-
-    # Frame for tool bar
-    frtb = Frame(dFr['fr'])
-    frtb.grid(row = 0, column = 0, sticky = E, pady = '0.2c', padx= '0.2c')
-
-    # Frame for page tabs (to be implemented later)
-    frtbb = Frame(frtb)
-    frtbb.grid(row = 0, column = 0)
-    # tb buttons
-    bproc = Button(frtbb, text = "Save", command = sav) #  bind to udpent (update entry)
-    bproc.grid(row = 0, column = 0)
-    bsol = Button(frtbb, text = "Solve", command = SolveClick) #  bind to udpent (update entry)
-    bsol.grid(row = 0, column = 1)
-    bclr = Button(frtbb, text = "Clear", command = clrspb)
-    bclr.grid(row = 0, column = 2)
-
-
-    # Frame for page tabs (to be implemented later)
-    frtbpt = Frame(frtb)
-    frtbpt.grid(row = 0, column = 1)
-    # Page index buttons (tab).
-    pc = Button(frtbpt, text="Constants",command = dispc)
-    pc.grid(row = 0, column = 0)
-    p1 = Button(frtbpt, text="1",command = disp1)
-    p1.grid(row = 0, column = 1)
-    p2 = Button(frtbpt, text="2",command = disp2)
-    p2.grid(row = 0, column = 2)
-    p3 = Button(frtbpt, text="3",command = disp3)
-    p3.grid(row = 0, column = 3)
-
-# Frame containing all widgets pertaining to constants
-def framec():
-    # Frame for all the small variable frames
-    dFr['frc'] = Canvas(dFr['fr'],scrollregion = (0,0,1024,768))
-    dBtn['bc'] = Button(dFr['frc'], text = "Constants Specified, Continue?", command = disp1)
-    dBtn['bc'].grid(columnspan =3, rowspan = 2, sticky = N+S+W+E)
-    dBtn['lpc'] = Label(dFr['frc'], text = "Constants fully specified")
-    dBtn['lpcn'] = Label(dFr['frc'], text = " Constants have not been specified")
-    dBtn['lpc'].grid(row = 2, columnspan = 3, pady = '2c')
-    dBtn['btcold'] = Button(dFr['frc'], text = "Use original Values", command = btco)
-    mcol = 3
-    rw = 3
-    i = 0
-    while (i < (len(cnstnm))):
-        col = 0
-        while (i < len(cnstnm)) and (col <= (mcol-1)):
-            lfrc = LabelFrame(dFr['frc'], text = cnstnm[i], labelanchor = 'nw')
-
-            dCspb[cnstnm[i]] = Spinbox(lfrc,width = 6,from_ = 0,to=1000000, format = '%0.2f', increment = 0.01)
-            dCspb[cnstnm[i]].delete(0,last=END)
-            dCspb[cnstnm[i]].insert(0,dCnst[cnstnm[i]])
-            dCspb[cnstnm[i]].grid(row = 0, column = 0, padx = '1c',pady = '0.2c')
-            dCspb[cnstnm[i]].event_add ( "<<allcnst>>", "<Button-1>", "<KP_Enter>" ,"<FocusOut>","<Up>","<Down>")
-            dCspb[cnstnm[i]].bind("<<allcnst>>", cnstok)
-            lc = Label(lfrc, text = cnstnm[i]) #Will add units later
-            lc.grid(row = 0, column = 1, padx = '1c')
-
-            lfrc.grid(row = rw, column = col, sticky = W+E,pady = '0.3c', padx = '0.1c')
-            i = i + 1
-            col = col + 1
-        rw = rw + 1
-    dFr['frc'].grid(row = 1, column = 0)
-
-# Check if constants entered and update if changed
-def cnstok(event):
-    cnsts = [(dCspb[j].get()) for j in (cnstnm)]
-    a = cnsts.count('')
-    if a > 0:
-        dBtn['lpcn'] = Label(dFr['frc'], text = str(a)+" Constant(s) NOT yet specified")
-        dBtn['lpc'].grid_remove()
-        dBtn['lpcn'].grid(row = 2, columnspan = 2, pady = '2c')
-        dBtn['btcold'].grid(row = 2, column = 2, pady = '2c')
-    else:
-        dBtn['btcold'].grid_remove()
-        dBtn['lpcn'].grid_remove()
-        dBtn['lpc'].grid_remove()
-        dBtn['lpc'].grid(row = 2, columnspan = 3, pady = '2c')
-        for nmc in cnstnm:
-            dCnst[nmc] = float(dCspb[nmc].get())
-        print dCnst
-
-# Insert original constants, 
-def btco():
-    cnsts = np.loadtxt('const.txt')
-    [dCspb[nm].insert(0,cnsts[i]) for i, nm in enumerate(cnstnm)]
-    dBtn['btcold'].grid_remove()
-    dBtn['lpcn'].grid_remove()
-    dBtn['lpc'].grid_remove()
-    dBtn['lpc'].grid(row = 2, columnspan = 3, pady = '2c')
-
-# Frame 1 - main form with all variables
-def frame1():
-    mcol = 8 # Maximum labelframes / column
-
-    # Frame for each labelframes
-    dFr['fr1'] = Canvas(dFr['fr'],scrollregion = (0,0,1024,768))
-   
-     # Frame showing number of DOF
-
-    frDOF = LabelFrame(dFr['fr1'], text = "DOF", labelanchor='nw')
+class MechGui:
     
-    lblDOF['DOF'] = Label(frDOF, text=DOFtxt, padx=3, pady=3)
-    lblDOF['DOF'].grid()
-    frDOF.grid(row=0, column=0, sticky='NW', padx='0.1c', pady='0.3c') 
     
-    # Place frame (label and edit) for each variable in names
-    rownos = 1
-    i = 0
-    while (i < (len(names))):
-        colnos = 0
-        while (i < len(names)) and (colnos <= (mcol-1)):
-            # create a new frame for each iteration in the loop
-            lfr = LabelFrame(dFr['fr1'], text = names[i], labelanchor = 'nw')
+    def __init__(self, parent, title):
+        self.myParent = parent
+        # Read info about names and equations
+        self.names = [line.strip() for line in open('Unknowns.txt')]
+        self.cnstnm = [line.strip() for line in open('cnstnm.txt')]
+        self.incidence = np.loadtxt('base.txt')
+        self.cnsts = [float(line.strip()) for line in open('const.txt')]
+        self.eqns, self.inequ, self.unkns = sc.readeqns('eqns.txt')
+        self.dCnst = dict(zip(self.cnstnm, self.cnsts))
+        #specced = {'Lo' : 11, 'mV' : 2300, 'V1' : 234, 'mL' : 12}
 
-            dSpb[names[i]] = Spinbox(lfr, width = 5, from_ = -100000, to = 100000, increment = 0.01, format = '%0.2f')
-            dSpb[names[i]].grid()
-            dSpb[names[i]].event_add ( "<<allspb>>", "<Button-1>", "<KP_Enter>" ,"<FocusIn>")
-            dSpb[names[i]].bind("<<allspb>>", sav)
-           # dSpb[names[i]].bind("<Button-1>", dSpbClick)
-            dSpb[names[i]].bind("<FocusIn>", dSpbClick)
-            dSpb[names[i]].delete(0,last=END)
-            dScl[names[i]] = Scale(lfr,orient=HORIZONTAL,length = '4c')
-            dScl[names[i]].grid()
-            lfr.grid(row = rownos, column = colnos, sticky = W+E,pady = '0.3c', padx = '0.1c')
+        ## Defining widgets
+
+        # Frame holding everything
+        self.mFrame = Frame(self.myParent)
+        self.mFrame.grid()
+        self.mFrame.pack()
+    
+        # Frame for tool bar
+        self.frmTbar = Frame(self.mFrame)
+        self.frmTbar.grid(row = 0, column = 0, sticky = E, pady = '0.2c', padx= '0.2c')
+        
+        # Frame for page tabs (to be implemented later)
+        self.frmTabs = Frame(self.frmTbar)
+        self.frmTabs.grid(row = 0, column = 0)
+        # tb buttons
+        self.btnSave = Button(self.frmTabs, text = "Save", command = self.sav) #  bind to udpent (update entry)
+        self.btnSave.grid(row = 0, column = 0)
+        self.btnSolve = Button(self.frmTabs, text = "Solve", command = self.SolveClick) #  bind to udpent (update entry)
+        self.btnSolve.grid(row = 0, column = 1)
+        
+    
+    
+        # Frame for page tabs (to be implemented later)
+        self.frtbpt = Frame(self.frmTbar)
+        self.frtbpt.grid(row = 0, column = 1)
+        # Page index buttons (tab).
+        self.btnConstants = Button(self.frtbpt, text="Constants",command = self.dispc)
+        self.btnConstants.grid(row = 0, column = 0)
+        self.btnDisp1 = Button(self.frtbpt, text="1",command = self.disp1)
+        self.btnDisp1.grid(row = 0, column = 1)
+        self.btnDisp2 = Button(self.frtbpt, text="2",command = self.disp2)
+        self.btnDisp2.grid(row = 0, column = 2)
+        self.btnDisp3 = Button(self.frtbpt, text="3",command = self.disp3)
+        self.btnDisp3.grid(row = 0, column = 3)
+
+
+    def framec(self):
+        dCspb = {}
+        # Frame for all the small variable frames
+        self.frmConst = Canvas(self.mFrame,scrollregion = (0,0,1024,768))
+        self.btnConstSpec = Button(self.frmConst, text = "Constants Specified, Continue?", command = self.disp1)
+        self.btnConstSpec.grid(columnspan =3, rowspan = 2, sticky = N+S+W+E)
+        self.lblCnstFSpec = Label(self.frmConst, text = "Constants fully specified")
+        self.lblCnstNFSpec = Label(self.frmConst, text = " Constants have not been specified")
+        self.lblCnstFSpec.grid(row = 2, columnspan = 3, pady = '2c')
+        self.btnCold = Button(self.frmConst, text = "Use original Values", command = self.btco)
+        self.btnClear = Button(self.frmTabs, text = "Clear", command = self.ClearConstants)
+        self.btnClear.grid(row = 0, column = 2)        
+        mcol = 3
+        rw = 3
+        i = 0
+        while (i < (len(self.cnstnm))):
+            col = 0
+            while (i < len(self.cnstnm)) and (col <= (mcol-1)):
+                self.lblfrConst = LabelFrame(self.frmConst, text = self.cnstnm[i], labelanchor = 'nw')
+    
+                dCspb[self.cnstnm[i]] = Spinbox(self.lblfrConst, width = 6,from_ = 0,to=1000000, format = '%0.2f', increment = 0.01)
+                dCspb[self.cnstnm[i]].delete(0,last=END)
+                dCspb[self.cnstnm[i]].insert(0,self.dCnst[self.cnstnm[i]])
+                dCspb[self.cnstnm[i]].grid(row = 0, column = 0, padx = '1c',pady = '0.2c')
+                dCspb[self.cnstnm[i]].event_add ( "<<allcnst>>", "<Button-1>", "<KP_Enter>" ,"<FocusOut>","<Up>","<Down>")
+                dCspb[self.cnstnm[i]].bind("<<allcnst>>", self.cnstok)
+                self.lblIndConst = Label(self.lblfrConst, text = self.cnstnm[i]) #Will add units later
+                self.lblIndConst.grid(row = 0, column = 1, padx = '1c')
+    
+                self.lblfrConst.grid(row = rw, column = col, sticky = W+E,pady = '0.3c', padx = '0.1c')
+                i = i + 1
+                col = col + 1
+            rw = rw + 1
+        self.frmConst.grid(row = 1, column = 0)
+
+        # Check if constants entered and update if changed
+    def cnstok(self, event):
+        self.cnsts = [(self.dCspb[j].get()) for j in (cnstnm)]
+        a = self.cnsts.count('')
+        if a > 0:
+            self.lblCnstNFSpec = Label(self.frmConst, text = str(a)+" Constant(s) NOT yet specified")
+            self.lblCnstFSpec.grid_remove()
+            self.lblCnstNFSpec.grid(row = 2, columnspan = 2, pady = '2c')
+            self.btnCold.grid(row = 2, column = 2, pady = '2c')
+        else:
+            self.btnCold.grid_remove()
+            self.lblCnstNFSpec.grid_remove()
+            self.lblCnstFSpec.grid_remove()
+            self.lblCnstFSpec.grid(row = 2, columnspan = 3, pady = '2c')
+            for nmc in self.cnstnm:
+                self.dCnst[nmc] = float(self.dCspb[nmc].get())
+            print self.dCnst
+
+    # Insert original constants, 
+    def btco(self):
+        self.cnsts = np.loadtxt('const.txt')
+        [dCspb[nm].insert(0,self.cnsts[i]) for i, nm in enumerate(self.cnstnm)]
+        self.btnCold.grid_remove()
+        self.lblCnstNFSpec.grid_remove()
+        self.lblCnstFSpec.grid_remove()
+        self.lblCnstFSpec.grid(row = 2, columnspan = 3, pady = '2c')
+    
+    # Frame 1 - main form with all variables
+    def frame1(self):
+        
+        mcol = 8 # Maximum labelframes / column
+    
+        # Frame for each labelframes
+        self.frm1 = Canvas(self.mFrame, scrollregion = (0,0,1024,768))
+       
+        # Frame showing number of DOF
+        self.btnClear = Button(self.frmTabs, text = "Clear", command = self.ClearVariables)
+        self.btnClear.grid(row = 0, column = 2)
+        self.frDOF = LabelFrame(self.frm1, text = "DOF", labelanchor='nw')
+        
+        self.lblDOF = Label(self.frDOF, text= "DOF", padx=3, pady=3)
+        self.lblDOF.grid()
+        self.frDOF.grid(row=0, column=0, sticky='NW', padx='0.1c', pady='0.3c') 
+        
+        # Place frame (label and edit) for each variable in names
+        rownos = 1
+        i = 0
+        while (i < (len(self.names))):
+            colnos = 0
+            while (i < len(self.names)) and (colnos <= (mcol-1)):
+                # create a new frame for each iteration in the loop
+                self.lfr = LabelFrame(self.frm1, text = self.names[i], labelanchor = 'nw')
+    
+                dSpb[self.names[i]] = Spinbox(self.lfr, width = 5, from_ = -100000, to = 100000, increment = 0.01, format = '%0.2f')
+                dSpb[self.names[i]].grid()
+                dSpb[self.names[i]].event_add ( "<<allspb>>", "<Button-1>", "<KP_Enter>" ,"<FocusIn>")
+                dSpb[self.names[i]].bind("<<allspb>>", self.sav)
+                dSpb[self.names[i]].bind("<Button-1>", self.dSpbClick)
+                dSpb[self.names[i]].bind("<FocusIn>", self.dSpbClick)
+                dSpb[self.names[i]].delete(0,last=END)
+                dScl[self.names[i]] = Scale(self.lfr,orient=HORIZONTAL,length = '4c')
+                dScl[self.names[i]].grid()
+                self.lfr.grid(row = rownos, column = colnos, sticky = W+E,pady = '0.3c', padx = '0.1c')
+                
+                i = i + 1
+                colnos = colnos + 1
+            rownos = rownos + 1
+    
+        self.scrollY = Scrollbar(self.frm1,orient=VERTICAL, command = self.frm1.yview )
+        self.scrollY.grid (row = 0, rowspan = rownos, column=mcol+1, sticky=N+S+E )
+        self.frm1["yscrollcommand"] = self.scrollY.set
+        
+       
+    def frame2(self):
+        self.frm2 = Canvas(self.mFrame, scrollregion = (0,0,1024,768))
+        self.btnP2 = Button(self.frm2,text = "Page 2 Inactive")
+        self.btnP2.grid(row = 1, column = 1, pady = '2c')
+        self.lblResCost = Label(self.frm2, text = "Reserved Cost")
+        self.lblResCost.grid(row = 1, column = 2, pady = '2c')
+    
+    def frame3(self):
+        # Frame for all the small variable frames
+        self.frm3 = Canvas(self.mFrame,scrollregion = (0,0,5000,900))
+        self.btnP3 = Button(self.frm3,text = "Page 3 Inactive")
+        self.btnP3.grid(row = 1, column = 1, pady = '2c')
+        self.lblResColDia = Label(self.frm3, text = "Reserved Column Diagram")
+        self.lblResColDia.grid(row = 1, column = 2, pady = '2c')
+    
+#    def frame4(self):
+#        # Frame for all the small variable frames
+#        self.frm4 = Canvas(self.mFrame,scrollregion = (0,0,1500,900))
+#        self.btnP4 = Button(self.frm4,text = "Page 4 Inactive")
+#        self.btnP4.grid(row = 1, column = 1, pady = '2c')
+#        self.lblCostOpt = Label(self.frm4, text = "Reserved for Cost Optimisation")
+#        self.lblCostOpt.grid(row = 1, column = 2, pady = '2c')
+    
+    #Display relevant frame and remove the other (don't forget)
+    def dispc(self):
+        self.frm1.grid_remove()
+        self.frm2.grid_remove()
+        self.frm3.grid_remove()
+       # self.frm4.grid_remove()
+        self.frmConst.grid(row = 1, column = 0)
             
-            i = i + 1
-            colnos = colnos + 1
-        rownos = rownos + 1
-
-    scrollY = Scrollbar (dFr['fr1'],orient=VERTICAL, command = dFr['fr1'].yview )
-    scrollY.grid (row = 0, rowspan = rownos, column=mcol+1, sticky=N+S+E )
-    dFr['fr1']["yscrollcommand"] = scrollY.set
+    def disp1(self):
+        self.frmConst.grid_remove()
+        self.frm2.grid_remove()
+        self.frm3.grid_remove()
+        
+        self.frm1.grid(row =1, column = 0)
     
-   
-def frame2():
-    dFr['fr2'] = Canvas(dFr['fr'],scrollregion = (0,0,1024,768))
-    bp2 = Button(dFr['fr2'],text = "Page 2 Inactive")
-    bp2.grid(row = 1, column = 1, pady = '2c')
-    lp2 = Label(dFr['fr2'], text = "Reserved Cost")
-    lp2.grid(row = 1, column = 2, pady = '2c')
+    def disp2(self):
+        self.frmConst.grid_remove()
+        self.frm1.grid_remove()
+        self.frm3.grid_remove()
+        #self.frm4.grid_remove()
+        self.frm2.grid(row =1, column = 0)
+    
+    def disp3(self):
+        self.frmConst.grid_remove()
+        self.frm1.grid_remove()
+        self.frm2.grid_remove()
+        #self.frm4.grid_remove()
+        self.frm3.grid(row =1, column = 0)        
 
-def frame3():
-    # Frame for all the small variable frames
-    dFr['fr3'] = Canvas(dFr['fr'],scrollregion = (0,0,5000,900))
-    bp3 = Button(dFr['fr3'],text = "Page 3 Inactive")
-    bp3.grid(row = 1, column = 1, pady = '2c')
-    lp3 = Label(dFr['fr3'], text = "Reserved Column Diagram")
-    lp3.grid(row = 1, column = 2, pady = '2c')
-
-def frame4():
-    # Frame for all the small variable frames
-    dFr['fr4'] = Canvas(dFr['fr'],scrollregion = (0,0,1500,900))
-    bp4 = Button(dFr['fr4'],text = "Page 4 Inactive")
-    bp4.grid(row = 1, column = 1, pady = '2c')
-    lp4 = Label(dFr['fr4'], text = "Reserved for Cost Optimisation")
-    lp4.grid(row = 1, column = 2, pady = '2c')
-
-#Display relevant frame and remove the other (don't forget)
-def dispc():
-    rqrd = 'frc'
-    crnt = dvar['crnt']
-    dFr[crnt].grid_remove()
-    dFr[rqrd].grid(row = 1, column = 0)
-    dvar['crnt'] = rqrd
-
-def disp1():
-    rqrd = 'fr1'
-    crnt = dvar['crnt']
-    dFr[crnt].grid_remove()
-    dFr[rqrd].grid(row = 1, column = 0)
-    dvar['crnt'] = rqrd
-
-def disp2():
-    rqrd = 'fr2'
-    crnt = dvar['crnt']
-    dFr[crnt].grid_remove()
-    dFr[rqrd].grid(row = 1, column = 0)
-    dvar['crnt'] = rqrd
-
-def disp3():
-    rqrd = 'fr3'
-    crnt = dvar['crnt']
-    dFr[crnt].grid_remove()
-    dFr[rqrd].grid(row = 1, column = 0)
-    dvar['crnt'] = rqrd
-
-# Function which takes updates entry widgets when variables become specified from mofifier
-def sav(event):
-    return
-    #for nm in dSpb.keys():
-       # if dSpb[nm].get() <> '':
-            #specv[nm] = float(dSpb[nm].get())
-            #defV(specv, names, incidence, nm, float(dSpb[nm].get()))
-   # print specv
-
-# Clear whichever field is in view
-def clrspb():
-    if dvar['crnt'] == 'fr1':
+    # Function which takes updates entry widgets when variables become specified from mofifier
+    def sav(self):
+        return
+        for nm in dSpb.keys():
+            if dSpb[nm].get() <> '':
+                self.specv[nm] = float(dSpb[nm].get())
+                self.defV(self.specv, self.names, self.incidence, nm, float(self.dSpb[nm].get()))
+        print specv
+    
+    # Clear whichever field is in view
+    def ClearVariables(self):
+        
         for vspb in dSpb.keys():
             dSpb[vspb].delete(0,last=END)
             dSpb[vspb].insert(0,'')
-        sp.clear()
-        specv.clear()
-    if dvar['crnt'] == 'frc':
+        self.sp.clear()
+        self.specv.clear()
+        
+    def ClearConstants(self):
         for vcspb in dCspb.keys():
             dCspb[vcspb].delete(0,last=END)
             dCspb[vcspb].insert(0,'')
-        dCnst = {}
-    
-    
-    
-# calculate Degrees of freedom
-def DOF(eqns, unkns):
-    DeOF = len(unkns)-len(eqns)
-    return DeOF    
-    
-# Define Click on Spinbox
-def dSpbClick(event):    
-    eqns, inequ, unkns = sc.readeqns('eqns.txt')
-    DeOF = DOF(eqns, unkns)
-    
-    lblDOF['DOF'].config(text="Specify %s variables" %str(DeOF))
-    lblDOF['DOF'].update_idletasks()
-    
-# Call solve
-def solv(eqns, unkns): 
-    print eqns, unkns
-    DeOF = DOF(eqns, unkns)
-    print 'DOF is', DeOF
-    while DeOF > 0:
-#        curr_spb = 
-#       specv[curr_spb] = float((dSpb[curr_spb].get()))
-        for nm in dSpb.keys():
-           if dSpb[nm].get() <> '':
-                specv[nm] = float((dSpb[nm].get()))
-        print specv
-        eqns, unkns = sc.InsertKnowns(specv, dCnst, eqns, unkns)
-        print eqns, unkns
-        DeOF = DOF(eqns, unkns)
-        lblDOF['DOF'].config(text="Specify %s variables" %str(DeOF+1))
-        lblDOF['DOF'].update_idletasks()
-    specv.clear() 
-    if DeOF == 0:
-        
-        sp = sc.solvr(eqns, unkns)
-        print sp
-        for nm in dSpb.keys():
-            for var in sp:
-                if nm == str(var):
-                    dSpb[nm].delete(0,last=END)
-                    dSpb[nm].insert(0, sp.get(var)) 
-        
-        lblDOF['DOF'].config(text="System fully specified")
-        lblDOF['DOF'].update_idletasks()
-        eqns, inequ, unkns = sc.readeqns('eqns.txt')
-        DeOF = DOF(eqns, unkns)
-        print "Solve Ran to Competion"
-    else:
-        print "System overspecified"
-    
-    print 'eqns now is', eqns, DeOF
-    return eqns, unkns
-    
-# Define Solve Click event
-def SolveClick():
-    print 'Ahhhhhh', eqns
-    solv(eqns, unkns)
-    return        
+        self.dCnst.clear()
 
-def odc():
-    form = Tk()
-    form.title("OMDDC")
-    createWidgets(form,names)
-    frame1()
-    frame2()
-    frame3()
-    framec()
-    form.mainloop()
 
-odc()
+
+    # calculate Degrees of freedom
+    def DOF(self, eqns, unkns):
+        DeOF = int(len(unkns)-len(eqns))
+        return DeOF    
+        
+    # Define Click on Spinbox
+    def dSpbClick(self, event):    
+        DeOF = self.DOF(self.eqns, self.unkns)
+        
+        self.lblDOF.config(text="Specify %s variables" %str(DeOF))
+        self.lblDOF.update_idletasks()
+        
+    # Call solve
+    def solv(self): 
+        specv = {}
+        print self.eqns, self.unkns
+        DeOF = self.DOF(self.eqns, self.unkns)
+        print 'DOF is', DeOF
+        while DeOF > 0:
+    #        curr_spb = 
+    #       specv[curr_spb] = float((dSpb[curr_spb].get()))
+            for nm in dSpb.keys():
+               if dSpb[nm].get() <> '':
+                    specv[nm] = float((dSpb[nm].get()))
+            print specv
+            self.new_eqns, self.new_unkns = sc.InsertKnowns(specv, self.dCnst, self.eqns, self.unkns)
+            DeOF = self.DOF(self.new_eqns, self.new_unkns)
+            self.lblDOF.config(text="Specify %s variables" %str(DeOF+1))
+            self.lblDOF.update_idletasks()
+        specv.clear() 
+        if DeOF == 0:
+            
+            self.sp = sc.solvr(self.new_eqns, self.new_unkns)
+            print self.sp
+            for nm in dSpb.keys():
+                for var in self.sp:
+                    if nm == str(var):
+                        dSpb[nm].delete(0,last=END)
+                        dSpb[nm].insert(0, self.sp.get(var)) 
+            
+            self.lblDOF.config(text="System fully specified")
+            self.lblDOF.update_idletasks()
+            
+            print "Solve Ran to Competion"
+        else:
+            print "System overspecified"
+        
+       # print 'eqns now is', self.new_eqns, self.DeOF
+        
+    # Define Solve Click event
+    def SolveClick(self):
+        self.solv()
+        return        
+
+def main():
+    root = Tk()
+    myApp = MechGui(root, "OMDDC")
+    MechGui.frame1(myApp)
+    MechGui.frame2(myApp)
+    MechGui.frame3(myApp)
+    MechGui.framec(myApp)
+    root.mainloop()
+    
+if __name__ == '__main__':
+    main()
+#root = Tk()
+#root.title = "OMDDC"
+#myApp = MechGui(root, "OMDDC")
+#
+#root.mainloop()
+
 

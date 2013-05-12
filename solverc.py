@@ -87,6 +87,8 @@ def SortTarjan(Tjan, eqns, unkns):
 def solvr(eqns, unkns): 
     Tjan = Tarjan(eqns, unkns)  
     TjanSort = SortTarjan(Tjan, eqns, unkns)
+    print TjanSort
+    print eqns
     
     simu = []
     sol = {}
