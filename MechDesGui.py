@@ -11,8 +11,6 @@ import numpy as np
 import eqtn
 import solverc as sc
 
-dSpb = {}
-dScl = {}
 dCspb = {}
 
 class MechGui:
@@ -20,6 +18,10 @@ class MechGui:
     
     def __init__(self, parent, title):
         self.myParent = parent
+
+        self.dSpb = {}
+        self.dScl = {}
+
         # Read info about names and equations
         self.names = [line.strip() for line in open('Unknowns.txt')]
         self.cnstnm = [line.strip() for line in open('cnstnm.txt')]
@@ -153,15 +155,15 @@ class MechGui:
                 # create a new frame for each iteration in the loop
                 self.lfr = LabelFrame(self.frm1, text = self.names[i], labelanchor = 'nw')
     
-                dSpb[self.names[i]] = Spinbox(self.lfr, width = 5, from_ = -100000, to = 100000, increment = 0.01, format = '%0.2f')
-                dSpb[self.names[i]].grid()
-                dSpb[self.names[i]].event_add ( "<<allspb>>", "<Button-1>", "<KP_Enter>" ,"<FocusIn>")
-                dSpb[self.names[i]].bind("<<allspb>>", self.sav)
-                dSpb[self.names[i]].bind("<Button-1>", self.dSpbClick)
-                dSpb[self.names[i]].bind("<FocusIn>", self.dSpbClick)
-                dSpb[self.names[i]].delete(0,last=END)
-                dScl[self.names[i]] = Scale(self.lfr,orient=HORIZONTAL,length = '4c')
-                dScl[self.names[i]].grid()
+                self.dSpb[self.names[i]] = Spinbox(self.lfr, width = 5, from_ = -100000, to = 100000, increment = 0.01, format = '%0.2f')
+                self.dSpb[self.names[i]].grid()
+                self.dSpb[self.names[i]].event_add ( "<<allspb>>", "<Button-1>", "<KP_Enter>" ,"<FocusIn>")
+                self.dSpb[self.names[i]].bind("<<allspb>>", self.sav)
+                self.dSpb[self.names[i]].bind("<Button-1>", self.dSpbClick)
+                self.dSpb[self.names[i]].bind("<FocusIn>", self.dSpbClick)
+                self.dSpb[self.names[i]].delete(0,last=END)
+                self.dScl[self.names[i]] = Scale(self.lfr,orient=HORIZONTAL,length = '4c')
+                self.dScl[self.names[i]].grid()
                 self.lfr.grid(row = rownos, column = colnos, sticky = W+E,pady = '0.3c', padx = '0.1c')
                 
                 i = i + 1
@@ -228,9 +230,9 @@ class MechGui:
     # Function which takes updates entry widgets when variables become specified from mofifier
     def sav(self):
         return
-        for nm in dSpb.keys():
-            if dSpb[nm].get() <> '':
-                self.specv[nm] = float(dSpb[nm].get())
+        for nm in self.dSpb.keys():
+            if self.dSpb[nm].get() <> '':
+                self.specv[nm] = float(self.dSpb[nm].get())
                 self.defV(self.specv, self.names, self.incidence, nm, float(self.dSpb[nm].get()))
         print specv
     
@@ -238,8 +240,8 @@ class MechGui:
     def ClearVariables(self):
         
         for vspb in dSpb.keys():
-            dSpb[vspb].delete(0,last=END)
-            dSpb[vspb].insert(0,'')
+            self.dSpb[vspb].delete(0,last=END)
+            self.dSpb[vspb].insert(0,'')
         self.sp.clear()
         self.specv.clear()
         
@@ -272,9 +274,9 @@ class MechGui:
         while DeOF > 0:
     #        curr_spb = 
     #       specv[curr_spb] = float((dSpb[curr_spb].get()))
-            for nm in dSpb.keys():
-               if dSpb[nm].get() <> '':
-                    specv[nm] = float((dSpb[nm].get()))
+            for nm in self.dSpb.keys():
+               if self.dSpb[nm].get() <> '':
+                    specv[nm] = float((self.dSpb[nm].get()))
             print specv
             self.new_eqns, self.new_unkns = sc.InsertKnowns(specv, self.dCnst, self.eqns, self.unkns)
             DeOF = self.DOF(self.new_eqns, self.new_unkns)
@@ -285,11 +287,11 @@ class MechGui:
             
             self.sp = sc.solvr(self.new_eqns, self.new_unkns)
             print self.sp
-            for nm in dSpb.keys():
+            for nm in self.dSpb.keys():
                 for var in self.sp:
                     if nm == str(var):
-                        dSpb[nm].delete(0,last=END)
-                        dSpb[nm].insert(0, self.sp.get(var)) 
+                        self.dSpb[nm].delete(0,last=END)
+                        self.dSpb[nm].insert(0, self.sp.get(var)) 
             
             self.lblDOF.config(text="System fully specified")
             self.lblDOF.update_idletasks()
