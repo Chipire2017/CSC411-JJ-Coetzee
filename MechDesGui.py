@@ -11,23 +11,20 @@ import numpy as np
 import eqtn
 import solverc as sc
 
-dCspb = {}
-
-class MechGui:
-    
-    
-    def __init__(self, parent, title):
+class Mainframe:
+    def __init__(self, parent):
         self.myParent = parent
 
         self.dSpb = {}
         self.dScl = {}
+        self.dCspb = {}
 
         # Read info about names and equations
-        self.names = [line.strip() for line in open('Unknowns.txt')]
         self.cnstnm = [line.strip() for line in open('cnstnm.txt')]
         self.incidence = np.loadtxt('base.txt')
         self.cnsts = [float(line.strip()) for line in open('const.txt')]
         self.eqns, self.inequ, self.unkns = sc.readeqns('eqns.txt')
+        self.names = [line.strip() for line in open('Unknowns.txt')]
         self.dCnst = dict(zip(self.cnstnm, self.cnsts))
         #specced = {'Lo' : 11, 'mV' : 2300, 'V1' : 234, 'mL' : 12}
 
@@ -37,7 +34,11 @@ class MechGui:
         self.mFrame = Frame(self.myParent)
         self.mFrame.grid()
         self.mFrame.pack()
-    
+        
+        self.frmConst = Canvas(self.mFrame,scrollregion = (0,0,1024,768))
+        self.frm1 = Canvas(self.mFrame, scrollregion = (0,0,1024,768))
+        self.frm2 = Canvas(self.mFrame, scrollregion = (0,0,1024,768))
+        self.frm3 = Canvas(self.mFrame,scrollregion = (0,0,5000,900))
         # Frame for tool bar
         self.frmTbar = Frame(self.mFrame)
         self.frmTbar.grid(row = 0, column = 0, sticky = E, pady = '0.2c', padx= '0.2c')
@@ -48,8 +49,7 @@ class MechGui:
         # tb buttons
         self.btnSave = Button(self.frmTabs, text = "Save", command = self.sav) #  bind to udpent (update entry)
         self.btnSave.grid(row = 0, column = 0)
-        self.btnSolve = Button(self.frmTabs, text = "Solve", command = self.SolveClick) #  bind to udpent (update entry)
-        self.btnSolve.grid(row = 0, column = 1)
+        
         
     
     
@@ -59,18 +59,74 @@ class MechGui:
         # Page index buttons (tab).
         self.btnConstants = Button(self.frtbpt, text="Constants",command = self.dispc)
         self.btnConstants.grid(row = 0, column = 0)
-        self.btnDisp1 = Button(self.frtbpt, text="1",command = self.disp1)
+        self.btnDisp1 = Button(self.frtbpt, text="Variables", command = self.disp1)        
         self.btnDisp1.grid(row = 0, column = 1)
         self.btnDisp2 = Button(self.frtbpt, text="2",command = self.disp2)
         self.btnDisp2.grid(row = 0, column = 2)
         self.btnDisp3 = Button(self.frtbpt, text="3",command = self.disp3)
         self.btnDisp3.grid(row = 0, column = 3)
+                
+        #Display relevant frame and remove the other (don't forget)
+    def dispc(self):
+        self.frm1.grid_remove()
+        self.frm2.grid_remove()
+        self.frm3.grid_remove()
+       # self.frm4.grid_remove()
+        self.frmConst.grid(row = 1, column = 0)
+            
+    def disp1(self):
+        self.frmConst.grid_remove()
+        self.frm2.grid_remove()
+        self.frm3.grid_remove()
+        
+        self.frm1.grid(row =1, column = 0)
+    
+    def disp2(self):
+        self.frmConst.grid_remove()
+        self.frm1.grid_remove()
+        self.frm3.grid_remove()
+        #self.frm4.grid_remove()
+        self.frm2.grid(row =1, column = 0)
+    
+    def disp3(self):
+        self.frmConst.grid_remove()
+        self.frm1.grid_remove()
+        self.frm2.grid_remove()
+        #self.frm4.grid_remove()
+        self.frm3.grid(row =1, column = 0)
+    
+    # Function which takes updates entry widgets when variables become specified from mofifier
+    def sav(self):
+        return
+        for nm in self.dSpb.keys():
+            if self.dSpb[nm].get() <> '':
+                self.specv[nm] = float(self.dSpb[nm].get())
+                self.defV(self.specv, self.names, self.incidence, nm, float(self.dSpb[nm].get()))
+        print specv
+    
+    # Clear whichever field is in view
+    def ClearVariables(self):
+        
+        for vspb in dSpb.keys():
+            self.dSpb[vspb].delete(0,last=END)
+            self.dSpb[vspb].insert(0,'')
+        self.sp.clear()
+        self.specv.clear()
+        
+    def ClearConstants(self):
+        for vcspb in self.dCspb.keys():
+            self.dCspb[vcspb].delete(0,last=END)
+            self.dCspb[vcspb].insert(0,'')
+        self.dCnst.clear()
 
+class ConstantsFrame(Mainframe):
+    
+    def __init__(self, parent):
+        self.myParent = parent
+        Mainframe.__init__(self, self.myParent)
 
-    def framec(self):
-        dCspb = {}
         # Frame for all the small variable frames
-        self.frmConst = Canvas(self.mFrame,scrollregion = (0,0,1024,768))
+        
         self.btnConstSpec = Button(self.frmConst, text = "Constants Specified, Continue?", command = self.disp1)
         self.btnConstSpec.grid(columnspan =3, rowspan = 2, sticky = N+S+W+E)
         self.lblCnstFSpec = Label(self.frmConst, text = "Constants fully specified")
@@ -78,7 +134,7 @@ class MechGui:
         self.lblCnstFSpec.grid(row = 2, columnspan = 3, pady = '2c')
         self.btnCold = Button(self.frmConst, text = "Use original Values", command = self.btco)
         self.btnClear = Button(self.frmTabs, text = "Clear", command = self.ClearConstants)
-        self.btnClear.grid(row = 0, column = 2)        
+        self.btnClear.grid(row = 0, column = 1)        
         mcol = 3
         rw = 3
         i = 0
@@ -87,12 +143,12 @@ class MechGui:
             while (i < len(self.cnstnm)) and (col <= (mcol-1)):
                 self.lblfrConst = LabelFrame(self.frmConst, text = self.cnstnm[i], labelanchor = 'nw')
     
-                dCspb[self.cnstnm[i]] = Spinbox(self.lblfrConst, width = 6,from_ = 0,to=1000000, format = '%0.2f', increment = 0.01)
-                dCspb[self.cnstnm[i]].delete(0,last=END)
-                dCspb[self.cnstnm[i]].insert(0,self.dCnst[self.cnstnm[i]])
-                dCspb[self.cnstnm[i]].grid(row = 0, column = 0, padx = '1c',pady = '0.2c')
-                dCspb[self.cnstnm[i]].event_add ( "<<allcnst>>", "<Button-1>", "<KP_Enter>" ,"<FocusOut>","<Up>","<Down>")
-                dCspb[self.cnstnm[i]].bind("<<allcnst>>", self.cnstok)
+                self.dCspb[self.cnstnm[i]] = Spinbox(self.lblfrConst, width = 6,from_ = 0,to=1000000, format = '%0.2f', increment = 0.01)
+                self.dCspb[self.cnstnm[i]].delete(0,last=END)
+                self.dCspb[self.cnstnm[i]].insert(0,self.dCnst[self.cnstnm[i]])
+                self.dCspb[self.cnstnm[i]].grid(row = 0, column = 0, padx = '1c',pady = '0.2c')
+                self.dCspb[self.cnstnm[i]].event_add ( "<<allcnst>>", "<Button-1>", "<KP_Enter>" ,"<FocusOut>","<Up>","<Down>")
+                self.dCspb[self.cnstnm[i]].bind("<<allcnst>>", self.cnstok)
                 self.lblIndConst = Label(self.lblfrConst, text = self.cnstnm[i]) #Will add units later
                 self.lblIndConst.grid(row = 0, column = 1, padx = '1c')
     
@@ -104,7 +160,7 @@ class MechGui:
 
         # Check if constants entered and update if changed
     def cnstok(self, event):
-        self.cnsts = [(self.dCspb[j].get()) for j in (cnstnm)]
+        self.cnsts = [(self.dCspb[j].get()) for j in (self.cnstnm)]
         a = self.cnsts.count('')
         if a > 0:
             self.lblCnstNFSpec = Label(self.frmConst, text = str(a)+" Constant(s) NOT yet specified")
@@ -123,23 +179,31 @@ class MechGui:
     # Insert original constants, 
     def btco(self):
         self.cnsts = np.loadtxt('const.txt')
-        [dCspb[nm].insert(0,self.cnsts[i]) for i, nm in enumerate(self.cnstnm)]
+        [self.dCspb[nm].insert(0,self.cnsts[i]) for i, nm in enumerate(self.cnstnm)]
         self.btnCold.grid_remove()
         self.lblCnstNFSpec.grid_remove()
         self.lblCnstFSpec.grid_remove()
         self.lblCnstFSpec.grid(row = 2, columnspan = 3, pady = '2c')
     
+    
+    
     # Frame 1 - main form with all variables
-    def frame1(self):
+class VariablesFrame(Mainframe):
         
+    def __init__(self, parent):
+        self.myParent = parent
+        Mainframe.__init__(self, self.myParent)
+
         mcol = 8 # Maximum labelframes / column
     
         # Frame for each labelframes
-        self.frm1 = Canvas(self.mFrame, scrollregion = (0,0,1024,768))
+        
        
         # Frame showing number of DOF
+        self.btnSolve = Button(self.frmTabs, text = "Solve", command = self.SolveClick) #  bind to udpent (update entry)
+        self.btnSolve.grid(row = 1, column = 1)
         self.btnClear = Button(self.frmTabs, text = "Clear", command = self.ClearVariables)
-        self.btnClear.grid(row = 0, column = 2)
+        self.btnClear.grid(row = 1, column = 2)
         self.frDOF = LabelFrame(self.frm1, text = "DOF", labelanchor='nw')
         
         self.lblDOF = Label(self.frDOF, text= "DOF", padx=3, pady=3)
@@ -174,85 +238,6 @@ class MechGui:
         self.scrollY.grid (row = 0, rowspan = rownos, column=mcol+1, sticky=N+S+E )
         self.frm1["yscrollcommand"] = self.scrollY.set
         
-       
-    def frame2(self):
-        self.frm2 = Canvas(self.mFrame, scrollregion = (0,0,1024,768))
-        self.btnP2 = Button(self.frm2,text = "Page 2 Inactive")
-        self.btnP2.grid(row = 1, column = 1, pady = '2c')
-        self.lblResCost = Label(self.frm2, text = "Reserved Cost")
-        self.lblResCost.grid(row = 1, column = 2, pady = '2c')
-    
-    def frame3(self):
-        # Frame for all the small variable frames
-        self.frm3 = Canvas(self.mFrame,scrollregion = (0,0,5000,900))
-        self.btnP3 = Button(self.frm3,text = "Page 3 Inactive")
-        self.btnP3.grid(row = 1, column = 1, pady = '2c')
-        self.lblResColDia = Label(self.frm3, text = "Reserved Column Diagram")
-        self.lblResColDia.grid(row = 1, column = 2, pady = '2c')
-    
-#    def frame4(self):
-#        # Frame for all the small variable frames
-#        self.frm4 = Canvas(self.mFrame,scrollregion = (0,0,1500,900))
-#        self.btnP4 = Button(self.frm4,text = "Page 4 Inactive")
-#        self.btnP4.grid(row = 1, column = 1, pady = '2c')
-#        self.lblCostOpt = Label(self.frm4, text = "Reserved for Cost Optimisation")
-#        self.lblCostOpt.grid(row = 1, column = 2, pady = '2c')
-    
-    #Display relevant frame and remove the other (don't forget)
-    def dispc(self):
-        self.frm1.grid_remove()
-        self.frm2.grid_remove()
-        self.frm3.grid_remove()
-       # self.frm4.grid_remove()
-        self.frmConst.grid(row = 1, column = 0)
-            
-    def disp1(self):
-        self.frmConst.grid_remove()
-        self.frm2.grid_remove()
-        self.frm3.grid_remove()
-        
-        self.frm1.grid(row =1, column = 0)
-    
-    def disp2(self):
-        self.frmConst.grid_remove()
-        self.frm1.grid_remove()
-        self.frm3.grid_remove()
-        #self.frm4.grid_remove()
-        self.frm2.grid(row =1, column = 0)
-    
-    def disp3(self):
-        self.frmConst.grid_remove()
-        self.frm1.grid_remove()
-        self.frm2.grid_remove()
-        #self.frm4.grid_remove()
-        self.frm3.grid(row =1, column = 0)        
-
-    # Function which takes updates entry widgets when variables become specified from mofifier
-    def sav(self):
-        return
-        for nm in self.dSpb.keys():
-            if self.dSpb[nm].get() <> '':
-                self.specv[nm] = float(self.dSpb[nm].get())
-                self.defV(self.specv, self.names, self.incidence, nm, float(self.dSpb[nm].get()))
-        print specv
-    
-    # Clear whichever field is in view
-    def ClearVariables(self):
-        
-        for vspb in dSpb.keys():
-            self.dSpb[vspb].delete(0,last=END)
-            self.dSpb[vspb].insert(0,'')
-        self.sp.clear()
-        self.specv.clear()
-        
-    def ClearConstants(self):
-        for vcspb in dCspb.keys():
-            dCspb[vcspb].delete(0,last=END)
-            dCspb[vcspb].insert(0,'')
-        self.dCnst.clear()
-
-
-
     # calculate Degrees of freedom
     def DOF(self, eqns, unkns):
         DeOF = int(len(unkns)-len(eqns))
@@ -305,15 +290,54 @@ class MechGui:
     # Define Solve Click event
     def SolveClick(self):
         self.solv()
-        return        
+        return
+       
+class frame2(Mainframe):
+    
+    def __init__(self, parent):
+
+        self.myParent = parent
+        Mainframe.__init__(self, self.myParent)
+
+        
+        
+        self.btnP2 = Button(self.frm2,text = "Page 2 Inactive")
+        self.btnP2.grid(row = 1, column = 1, pady = '2c')
+        self.lblResCost = Label(self.frm2, text = "Reserved Cost")
+        self.lblResCost.grid(row = 1, column = 2, pady = '2c')
+class frame3(Mainframe):
+    
+    def __init__(self, parent):
+        self.myParent = parent
+        Mainframe.__init__(self, self.myParent)
+
+        # Frame for all the small variable frames
+       
+        self.btnP3 = Button(self.frm3,text = "Page 3 Inactive")
+        self.btnP3.grid(row = 1, column = 1, pady = '2c')
+        self.lblResColDia = Label(self.frm3, text = "Reserved Column Diagram")
+        self.lblResColDia.grid(row = 1, column = 2, pady = '2c')
+    
+class frame4(Mainframe):
+    
+    def __init__(self, parent):
+        self.myParent = parent
+        Mainframe.__init__(self)
+
+        # Frame for all the small variable frames
+        self.frm4 = Canvas(self.mFrame,scrollregion = (0,0,1500,900))
+        self.btnP4 = Button(self.frm4,text = "Page 4 Inactive")
+        self.btnP4.grid(row = 1, column = 1, pady = '2c')
+        self.lblCostOpt = Label(self.frm4, text = "Reserved for Cost Optimisation")
+        self.lblCostOpt.grid(row = 1, column = 2, pady = '2c')
+    
+                       
 
 def main():
     root = Tk()
-    myApp = MechGui(root, "OMDDC")
-    MechGui.frame1(myApp)
-    MechGui.frame2(myApp)
-    MechGui.frame3(myApp)
-    MechGui.framec(myApp)
+    myApp = Mainframe(root)
+    ConstantsFrame(root)
+    VariablesFrame(root)
     root.mainloop()
     
 if __name__ == '__main__':
