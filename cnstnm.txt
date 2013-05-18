@@ -1,8 +1,8 @@
-L/D
+LD
 D
 pL
 pV
-lambda
+lmda
 Cpavg
 Tref
 F

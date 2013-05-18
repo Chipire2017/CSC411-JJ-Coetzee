@@ -1,41 +1,41 @@
-Lo-L_D*D
+Lo-LD*D
 V1-Lo-D
 mL-pL*Lo
 mV-pV*V1
-Qc+lmda*D+Lo
-EntF-Cpavg*(Tf-Tref)
-EntB-mL*Cpavg*(TbpB-Tref)
-Entd-mV*(lmda+Cpavg*Tref-TbpA)
-Qr+Qc+F*EntF-B*EntB-D*Entd
+Qc+lmda * D +Lo
+Hf-Cpavg*(Tf - Tref)
+Hb-mL*Cpavg*(TbpB - Tref)
+Hd-mV*(lmda+Cpavg*(Tref - TbpA))
+Qr+Qc+F*Hf-B*Hb- D* Hd
 lp-mult1*do
 tw-mult2*do
 Flv-(mL/mV)*sqrt(pV/pL)
-uflood/0.3048-Csbf*((sigma/20)**2)*sqrt((pL-pV)/pV)
-uop-frac*Csbf
+uflood/0.3048-Csbf*((sigma/20)**0.2)*sqrt((pL-pV)/pV)
+uop-frac*uflood
 MWv-uop*pV
 Dc-sqrt((4*V1*MWv)/(pi*n*pV*frac*uflood*3600))
 x-((thta-sin(thta))/(2*pi))
 lw-Dc*sin(thta)/2
-Ad-((Dc**2)/8)*(thta-sin(thta))
-lup-(DC-50*(10**(-3)))*((pi*thta)/180)
-Aup-(50*10**(-3))*lup
-lcz-lw-50*10**(-3)
-Acz-2*(lcz*(50*10**(-3)))
+Ad-(1-n)*Ac
+lup-(Dc-0.05)*(pi*thta)/180
+Aup-0.05*lup
+lcz-lw-0.05
+Acz-2*(lcz*0.05)
 Ac-(pi/4)*Dc**2
 Aa-Ac+2*Ad
-Ap-Aa+Aup+Auz
+Ap-Aa+Aup+Acz
 Ah-0.9*Ap*((do/lp)**2)
 Ahole-(pi/4)*do**2
 Nhole-(Ah/Ahole)
-Vo-((v1*MWv)/pV*Ah*3600))
+Vo-((V1*MWv)/(pV*Ah*3600))
 uh-(Vo/Ah)
-hd-51*(pV/pL)*((uh/CO)**2)
+hd-51*(pV/pL)*((uh/Co)**2)
 hw-10*tw
-hap-hw+10*10**(-3)
-how/pL-750*((Lo/pL*lw))**(2/3)
-ht-hd-hr-hw-how
-Aap-(hap*lw)
-hdc-166*((mL/(pL*Aap))**2)
+hap-hw+0.01
+how-750*(mL/pL*lw)**(2/3)
+ht-hd- hr -hw-how
+Aap-hap*lw
+hdc-166*(mL/(pL*Aap))**2
 hb-ht-hdc-hw-how
 log10(Csbf)+1+0.6*log10(Flv)+0.2*((log10(Flv))**2)
 Co-0.65-1.5*(Ah/Ap)

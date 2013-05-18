@@ -4,6 +4,8 @@ import test_solver as ts
 #from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 
+
+
 def readeqns(filename):
     all_eqns = [sy.parsing.sympy_parser.parse_expr(line) for line in open(filename)]
 
@@ -17,31 +19,23 @@ def readeqns(filename):
 
     unkns = [x for x in set.union(*(eq.atoms() for eq in eqns)) if x.is_Symbol]
     return eqns, inequ, unkns
-    
-def InsertKnowns(specV, cnst, eqns, unkns):
 
-    print unkns
-    for unkn in unkns:
-        for nm, value in specV.iteritems():
+def InsertKnowns(known, eqns, unkns):
+
+    for unkn in unkns:        
+        for nm, value in known.iteritems():
             if nm == str(unkn):
                 tel = 0
                 for eq in eqns:
                     if nm in str(eq):
                         eq = eq.subs(nm, value)
                         eqns[tel] = eq
-                        print unkns             
+                        print unkn, nm
                     tel = tel + 1
+                print unkn, nm
                 del unkns[unkns.index(unkn)]
-        for ct, val in cnst.iteritems():
-            if ct == str(unkn):
-                tel = 0
-                for eq in eqns:
-                    if ct in str(eq):
-                        eq = eq.subs(ct, val)
-                        eqns[tel] = eq            
-        
-                    tel = tel + 1
-        
+                
+    print unkns    
     return eqns, unkns
 
     
@@ -76,10 +70,7 @@ def SortTarjan(Tjan, eqns, unkns):
         for nxt_eq in range(eq,len(seq)):
             num_unk2 = len(sorted(eqns[nxt_eq].atoms(sy.Symbol)))
             if num_unk2 < num_unk:
-                Tjan[nxt_eq], Tjan[eq] = Tjan[eq], Tjan[nxt_eq] 
-                
-                
-                
+                Tjan[nxt_eq], Tjan[eq] = Tjan[eq], Tjan[nxt_eq]              
             
     return Tjan
 
@@ -88,7 +79,6 @@ def solvr(eqns, unkns):
     Tjan = Tarjan(eqns, unkns)  
     TjanSort = SortTarjan(Tjan, eqns, unkns)
     print TjanSort
-    print eqns
     
     simu = []
     sol = {}
