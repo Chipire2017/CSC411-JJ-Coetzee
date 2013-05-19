@@ -16,6 +16,8 @@ class Mainframe:
         self.myParent = parent
 
         self.dSpb = {}
+        self.cbxVar = {}
+        self.varCb = {}
         self.dScl = {}
         self.dCspb = {}
 
@@ -23,8 +25,8 @@ class Mainframe:
         self.cnstnm = [line.strip() for line in open('cnstnm.txt')]
         self.incidence = np.loadtxt('base.txt')
         self.cnsts = [float(line.strip()) for line in open('const.txt')]
-        self.eqns, self.inequ, self.unkns = sc.readeqns('equations.txt')
-        self.names = [line.strip() for line in open('varn.txt')]
+        self.eqns, self.inequ, self.unkns = sc.readeqns('eqns.txt')
+        self.names = [line.strip() for line in open('Unknowns.txt')]
         self.dCnst = dict(zip(self.cnstnm, self.cnsts))
         #specced = {'Lo' : 11, 'mV' : 2300, 'V1' : 234, 'mL' : 12}
 
@@ -65,10 +67,10 @@ class Mainframe:
         
         self.frmConst = Canvas(self.mFrame, scrollregion = (0,0,1024,768))
         self.btnConstSpec = Button(self.frmConst, text = "Constants Specified, Continue?", command = self.disp1)
-        self.btnConstSpec.grid(columnspan =3, rowspan = 2, sticky = N+S+W+E)
-        self.lblCnstFSpec = Label(self.frmConst, text = "Constants fully specified")
-        self.lblCnstNFSpec = Label(self.frmConst, text = " Constants have not been specified")
-        self.lblCnstFSpec.grid(row = 2, columnspan = 3, pady = '2c')
+        self.btnConstSpec.grid(columnspan = 3, rowspan = 2, sticky = N+S+W+E)
+        self.lblCnstFSpec = Label(self.frmConst, text = "Constants fully specified", background = 'green')
+        self.lblCnstNFSpec = Label(self.frmConst, text = " Constants have not been specified", background = 'red')
+        self.lblCnstFSpec.grid(row = 2, columnspan = 3)
         self.btnCold = Button(self.frmConst, text = "Use original Values", command = self.btco)
         self.btnClear = Button(self.frmTabs, text = "Clear", command = self.ClearConstants)
         self.btnClear.grid(row = 0, column = 1)        
@@ -100,7 +102,7 @@ class Mainframe:
     def VariablesFrame(self):
        
         self.frmVar = Canvas(self.mFrame, scrollregion = (0,0,1024,768))
-        self.btnSolve = Button(self.frmTabs, text = "Solve", command = self.SolveClick) #  bind to udpent (update entry)
+        self.btnSolve = Button(self.frmTabs, text = "Solve", state = DISABLED, command = self.SolveClick) #  bind to udpent (update entry)
         self.btnSolve.grid(row = 0, column = 1)
         self.btnClear = Button(self.frmTabs, text = "Clear", command = self.ClearVariables)
         self.btnClear.grid(row = 0, column = 2)
@@ -110,26 +112,32 @@ class Mainframe:
         self.lblDOF = Label(self.frDOF, text= "DOF", padx=3, pady=3)
         self.lblDOF.grid()
         self.frDOF.grid(row=0, column=0, sticky='NW', padx='0.1c', pady='0.3c') 
-        
+        self.frmIndicator = {}
         # Place frame (label and edit) for each variable in names
         mcol = 8 # Maximum labelframes / column
         rownos = 1
         i = 0
+        var = []
         while (i < (len(self.names))):
             colnos = 0
             while (i < len(self.names)) and (colnos <= (mcol-1)):
                 # create a new frame for each iteration in the loop
                 self.lfr = LabelFrame(self.frmVar, text = self.names[i], labelanchor = 'nw')
-    
-                self.dSpb[self.names[i]] = Spinbox(self.lfr, width = 5, from_ = -100000, to = 100000, increment = 0.01, format = '%0.2f')
-                self.dSpb[self.names[i]].grid()
-                self.dSpb[self.names[i]].event_add ( "<<allspb>>", "<Button-1>", "<KP_Enter>" ,"<FocusIn>")
-                self.dSpb[self.names[i]].bind("<<allspb>>", self.sav)
-                self.dSpb[self.names[i]].bind("<Button-1>", self.dSpbClick)
-                self.dSpb[self.names[i]].bind("<FocusIn>", self.dSpbClick)
+                
+                self.frmIndicator[self.names[i]] = Frame(self.lfr, height = 3, width = 50)
+                self.frmIndicator[self.names[i]].grid(row = 0, column = 0)
+                self.dSpb[self.names[i]] = Spinbox(self.lfr, width = 5, from_ = 0, to = 100000, increment = 0.01, format = '%0.2f', state = "readonly")
+                self.dSpb[self.names[i]].grid(row = 1, column = 0, sticky = N+S)
+                #self.dSpb[self.names[i]].event_add ( "<<allspb>>", "<Button-1>", "<KP_Enter>" ,"<FocusIn>")
+                #self.dSpb[self.names[i]].bind("<<allspb>>", self.sav)
                 self.dSpb[self.names[i]].delete(0,last=END)
-                self.dScl[self.names[i]] = Scale(self.lfr,orient=HORIZONTAL,length = '4c')
-                self.dScl[self.names[i]].grid()
+                self.dScl[self.names[i]] = Scale(self.lfr, orient=HORIZONTAL, length = '4c')
+                self.dScl[self.names[i]].grid(row = 2, column = 0, sticky = N+S)
+                var.append(IntVar())
+                self.cbxVar[self.names[i]] = Checkbutton(self.lfr, text = None, onvalue = 1, variable = var[i], command = self.SelectVar)
+                                
+                self.varCb[self.names[i]] = var[i]     
+                self.cbxVar[self.names[i]].grid(row = 1, column = 1)
                 self.lfr.grid(row = rownos, column = colnos, sticky = W+E,pady = '0.3c', padx = '0.1c')
                 
                 i = i + 1
@@ -139,6 +147,7 @@ class Mainframe:
         self.scrollY = Scrollbar(self.frmVar,orient=VERTICAL, command = self.frmVar.yview )
         self.scrollY.grid (row = 0, rowspan = rownos, column=mcol+1, sticky=N+S+E )
         self.frmVar["yscrollcommand"] = self.scrollY.set
+    
 
     def Frame1(self):
         
@@ -173,8 +182,29 @@ class Mainframe:
         self.frmConst.grid(row = 1, column = 0)
             
     def disp1(self):
-        print self.unkns
+#        seq_eq = []        
+        #print self.unkns
+        #print self.dCnst
         self.eqns, self.unkns = sc.InsertKnowns(self.dCnst, self.eqns, self.unkns)
+        initSol = sc.SequentialSolving(self.eqns) 
+        print initSol
+        for nm in self.dSpb.keys():
+                for var in initSol:
+                    if nm == str(var):
+                        self.dSpb[nm].configure(state=NORMAL)
+                        self.dSpb[nm].delete(0,last=END)
+                        self.dSpb[nm].insert(0, initSol.get(var)) 
+                        self.dSpb[nm].configure(state='readonly')
+#        constTarjan = sc.Tarjan(self.eqns, self.unkns)
+#        print constTarjan
+#        for num in constTarjan:
+#            print num, self.eqns[num[0]]
+#            if len(num) == 1:
+#                seq_eq.append(num)
+#       
+#        print seq_eq
+#        sol = sc.solvr(seq_eq, self.eqns, self.unkns)
+        
         self.frmConst.grid_remove()
         self.frm2.grid_remove()
         self.frm3.grid_remove()
@@ -197,7 +227,7 @@ class Mainframe:
         self.frm3.grid(row =1, column = 0)
     
     # Function which takes updates entry widgets when variables become specified from mofifier
-    def sav(self):
+    def sav(self, event):
         return
         for nm in self.dSpb.keys():
             if self.dSpb[nm].get() <> '':
@@ -254,47 +284,106 @@ class Mainframe:
         return DeOF    
         
     # Define Click on Spinbox
-    def dSpbClick(self, event):    
-        DeOF = self.DOF(self.eqns, self.unkns)
-        
-        self.lblDOF.config(text="Specify %s variables" %str(DeOF))
-        self.lblDOF.update_idletasks()
-        
-    # Call solve
-    def solv(self): 
-        specv = {}
-        DeOF = self.DOF(self.eqns, self.unkns)
-        print 'DOF is', DeOF
-        while DeOF > 0:
-    #        curr_spb = 
-    #       specv[curr_spb] = float((dSpb[curr_spb].get()))
-            for nm in self.dSpb.keys():
-               if self.dSpb[nm].get() <> '':
-                    specv[nm] = float((self.dSpb[nm].get()))
-            print specv
-            self.new_eqns, self.new_unkns = sc.InsertKnowns(specv, self.eqns, self.unkns)
-            DeOF = self.DOF(self.new_eqns, self.new_unkns)
-            self.lblDOF.config(text="Specify %s variables" %str(DeOF+1))
-            self.lblDOF.update_idletasks()
-        specv.clear() 
-        if DeOF == 0:
+    def NumFixVar(self):
+        NumFixVar = 0;
+        for nm in self.cbxVar:
+            if (self.varCb.get(nm)).get():
+                NumFixVar+=1
+        return NumFixVar
             
-            self.sp = sc.solvr(self.new_eqns, self.new_unkns)
-            print self.sp
+    def SelectVar(self):   
+        
+        self.subunkn = {}
+        self.specV = {}
+        NumFix = self.NumFixVar()
+        if NumFix == 0:
+            self.lblDOF.config(text="Fix a Variable")
+            self.lblDOF.update_idletasks() 
+            self.subset = {}
+            self.specV.clear()
+            myColour = 'light grey'
             for nm in self.dSpb.keys():
+                print nm
+                self.dSpb[nm].config(state='readonly')
+                self.frmIndicator[nm].config(bg=myColour)
+        elif NumFix == 1:
+            i = 0
+            for nm in self.cbxVar:
+                if (self.varCb.get(nm)).get():
+                    self.dSpb[str(nm)].config(state=NORMAL)
+                    self.frmIndicator[nm].config(bg='red')
+                    self.specV[nm] = self.dSpb[nm].get()
+                    self.fixedvar = nm
+                else:
+                    self.dSpb[str(nm)].config(state='readonly', background = None)
+                i+=1
+                
+                
+            self.subset, self.subunkn = sc.FindSubset(self.specV, self.eqns)
+            for nm in self.dSpb.keys():
+                for var in self.subunkn:   
+                    if nm == str(var) and not nm == self.fixedvar:
+                        self.frmIndicator[nm].config(bg='green')                    
+            
+            self.DeOF = self.DOF(self.subset, self.subunkn)
+            print str(self.DeOF-1)
+            self.lblDOF.config(text="Specify %s variables" %str(self.DeOF-1))
+            self.lblDOF.update_idletasks()
+            print self.subset
+            print self.subunkn
+            
+        elif NumFix > 1:
+            print self.subset
+            var = []
+            
+            for eq in self.subset:
+                var = sc.FindUnknowns(self.subset)
+                if len(var) == 2 and not var[0] == self.fixedvar:
+                    self.dSpb[str(var[0])].config(state='readonly')
+                
+                        
+            while self.DeOF>0:        
+                for nm in self.cbxVar:
+                    if (self.varCb.get(nm)).get():
+                        self.dSpb[str(nm)].config(state=NORMAL)
+                        #self.specV[nm] = self.dSpb[nm].get()
+                        self.DeOF=self.DeOF-1
+                self.lblDOF.config(text="Specify %s variables" %str(self.DeOF-1))
+                self.lblDOF.update_idletasks()        
+                        
+            if self.DeOF == 0:
+                self.btnSolve.config(state=NORMAL)
+            else:
+                self.btnSolve.config(state=DISABLED)
+       
+    
+    # Call solve
+    def solv(self):
+        for nm in self.dSpb.keys():
+            if (self.varCb.get(nm)).get():
+               self.specV[nm] = self.dSpb[nm].get() 
+        
+        print self.subset
+        print 'DOF = ', self.DeOF
+        print self.specV   
+        self.subset, self.subunkn = sc.InsertKnowns(self.specV, self.subset, self.subunkn)
+                 
+        if self.DeOF == 0:
+           self.sp = sc.SolveSubset(self.subset, self.subunkn) 
+           for nm in self.dSpb.keys():
                 for var in self.sp:
                     if nm == str(var):
+                        self.dSpb[nm].config(state=NORMAL)
                         self.dSpb[nm].delete(0,last=END)
-                        self.dSpb[nm].insert(0, self.sp.get(var)) 
+                        self.dSpb[nm].insert(0, self.sp.get(var))
+           self.lblDOF.config(text="System fully specified")
+           self.lblDOF.update_idletasks()
             
-            self.lblDOF.config(text="System fully specified")
-            self.lblDOF.update_idletasks()
-            
-            print "Solve Ran to Competion"
-        else:
-            print "System overspecified"
-        
-       # print 'eqns now is', self.new_eqns, self.DeOF
+           print "Solve Ran to Competion"
+        elif self.DeOF < 0:
+           print "System overspecified"
+           self.lblDOF.config(text="System overspecified")
+           self.lblDOF.update_idletasks()
         
     # Define Solve Click event
     def SolveClick(self):

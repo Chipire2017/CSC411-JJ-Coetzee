@@ -5,6 +5,9 @@ import test_solver as ts
 from sympy.parsing.sympy_parser import parse_expr
 
 
+def FindUnknowns(eqns):
+    unkns = [x for x in set.union(*(eq.atoms() for eq in eqns)) if x.is_Symbol]
+    return unkns
 
 def readeqns(filename):
     all_eqns = [sy.parsing.sympy_parser.parse_expr(line) for line in open(filename)]
@@ -17,28 +20,86 @@ def readeqns(filename):
         else:
             inequ[eq[1]] = eq[0]        #Put inequalities in dictionary
 
-    unkns = [x for x in set.union(*(eq.atoms() for eq in eqns)) if x.is_Symbol]
+    unkns = FindUnknowns(eqns)
     return eqns, inequ, unkns
 
 def InsertKnowns(known, eqns, unkns):
-
-    for unkn in unkns:        
-        for nm, value in known.iteritems():
-            if nm == str(unkn):
-                tel = 0
-                for eq in eqns:
-                    if nm in str(eq):
-                        eq = eq.subs(nm, value)
-                        eqns[tel] = eq
-                        print unkn, nm
-                    tel = tel + 1
-                print unkn, nm
-                del unkns[unkns.index(unkn)]
-                
-    print unkns    
-    return eqns, unkns
-
     
+    for eq in eqns:
+        for nm, val in known.iteritems():
+            if nm in str(eq):
+                i = eqns.index(eq)
+                eq = eq.subs(nm, val)
+                eqns[i] = eq
+                
+    unkns = FindUnknowns(eqns)
+                 
+    return eqns, unkns
+    
+def SortEquations(eqns):
+    sorteq = []
+    n = 1
+    while len(sorteq)<len(eqns):
+        for eq in eqns:
+            num_unkn = len(sorted(eqns[eqns.index(eq)].atoms(sy.Symbol)))
+            if num_unkn == n:
+                sorteq.append(eq)
+        n+=1
+    
+    return sorteq
+    
+def SequentialSolving(eqns):
+    sorteq = SortEquations(eqns)
+    #print sorteq
+    seqsol = {}
+    
+    for eq in sorteq:
+        tel = sorteq.index(eq)
+        unkn = sorted(sorteq[tel].atoms(sy.Symbol))
+        num_unkn = len(unkn)
+        if num_unkn == 1:
+            val_unkn = sy.solve(eq, unkn) 
+            seqsol[unkn[0]] = val_unkn[0]
+            i = 0
+            for next_eq in sorteq:
+                if unkn[0] in eq:
+                    repl = next_eq.subs(unkn[0], val_unkn[0])
+                    sorteq[i] = repl
+                i+=1
+                
+    return seqsol
+    
+def FindSubset(specV, eqns):
+    subset = []
+    for eq in eqns:
+        for nm, val in specV.iteritems(): 
+            if nm in str(eq):
+                if len(sorted(eq.atoms(sy.Symbol)))>1:
+#                if len(FindUnknowns(eq))>1:
+#                    var = sy.Symbol(nm)
+#                    eq = eq.subs(var, val) 
+                    subset.append(eq)
+    if len(subset)>0:
+        subunkn = FindUnknowns(subset) 
+    else:
+        subunkn = [] 
+    return subset, subunkn
+    
+def SolveSubset(subset, subeqns):
+    subset = SortEquations(subset)
+    seq_sol = SequentialSolving(subset)
+    simu = {}
+    for eq in subset:
+        if eq == 0:
+            subset.remove(eq)
+    sim_eq = FindUnknowns(subset)
+    simu = sy.solve(subset, sim_eq)
+    
+    sol = dict(seq_sol.items() + simu.items())
+    
+    return sol        
+        
+     
 def Tarjan(eqns, unkns):
     
 
@@ -56,7 +117,7 @@ def Tarjan(eqns, unkns):
 
     Tjan = nx.strongly_connected_components(G)
     Tjan.reverse()
-    
+    Tjan = SortTarjan(Tjan, eqns, unkns)
     return Tjan
     
 def SortTarjan(Tjan, eqns, unkns):
@@ -75,21 +136,23 @@ def SortTarjan(Tjan, eqns, unkns):
     return Tjan
 
 
-def solvr(eqns, unkns): 
-    Tjan = Tarjan(eqns, unkns)  
-    TjanSort = SortTarjan(Tjan, eqns, unkns)
-    print TjanSort
+def solvr(Tjan, eqns, unkns): 
+     #Tjan = Tarjan(eqns, unkns)  
+#    TjanSort = SortTarjan(Tjan, eqns, unkns)
+#    print TjanSort
     
     simu = []
     sol = {}
     
-    for curr in TjanSort:
+    for curr in Tjan:
         if len(curr) == 1:
             for now in curr:
                 tel = 0
                 eq = eqns[now]
                 var = sorted(eqns[now].atoms(sy.Symbol))   
+                print now, eq, var                
                 solv = sy.solve(eq, var)
+                print solv
                 val = solv[0]
                 for repl in eqns:    #Replace unknowns with values in equations
                     repl = repl.subs(var[0], val)
@@ -108,5 +171,3 @@ def solvr(eqns, unkns):
         sol[key] = float(sol.get(key))
         sol[key] = '%0.2f' % sol[key]
     return sol
-    
-    ts.TarjanTest

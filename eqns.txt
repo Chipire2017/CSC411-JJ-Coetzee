@@ -1,5 +1,5 @@
-x -2*y-p
-y-x+3
-z-3-k
-k-4+2*z+x
-z < 5, "Kleiner"
+x+y-3
+k+w-z
+x-2
+2*x-3*y-z
+2*k-3*w+l

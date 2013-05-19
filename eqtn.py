@@ -1,4 +1,4 @@
-# -*- coding:utf-8 -*-
+        # -*- coding:utf-8 -*-
 """
 Created on 24 Mar 2011
 
@@ -39,7 +39,7 @@ def fnEq(solvset,deq,varts,dcnst):
                 lambda x , dcnst: x['lup'] - (x['Dc'] - 50*(10**(-3)))*((pi*x['thta'])/180),
                 lambda x , dcnst: x['Aup'] - (50*10**(-3))*x['lup'],
                 lambda x , dcnst: x['lcz'] - x['lw'] - 50*10**(-3),
-                lambda x , dcnst: x['Acz'] - 2*(x['lcz']*(50*10**(-3))),
+                lambda x , dcnst: x['Acz'] - 2*(x['lcz']*(50*10**(-3))),    
                 lambda x , dcnst: x['Ac'] - (pi/4)*(x['Dc']**2),
                 lambda x , dcnst: x['Aa'] - x['Ac'] + 2*x['Ad'],
                 lambda x , dcnst: x['Ap'] - x['Aa'] + x['Aup'] + x['Acz'],
