@@ -1,7 +1,6 @@
 import networkx as nx
 import sympy as sy
-import test_solver as ts
-#from sympy import *
+from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 
 
@@ -23,7 +22,7 @@ def readeqns(filename):
     unkns = FindUnknowns(eqns)
     return eqns, inequ, unkns
 
-def InsertKnowns(known, eqns, unkns):
+def InsertKnowns(known, eqns):
     
     for eq in eqns:
         for nm, val in known.iteritems():
@@ -38,12 +37,19 @@ def InsertKnowns(known, eqns, unkns):
     
 def SortEquations(eqns):
     sorteq = []
+    neweq = []    
     n = 1
-    while len(sorteq)<len(eqns):
+    for eq in eqns:
+        if not eq == 0:
+            neweq.append(eq)
+            
+    while len(sorteq)<len(neweq):
         for eq in eqns:
             num_unkn = len(sorted(eqns[eqns.index(eq)].atoms(sy.Symbol)))
-            if num_unkn == n:
+            
+            if num_unkn == n: 
                 sorteq.append(eq)
+            
         n+=1
     
     return sorteq
@@ -52,20 +58,25 @@ def SequentialSolving(eqns):
     sorteq = SortEquations(eqns)
     #print sorteq
     seqsol = {}
-    
-    for eq in sorteq:
-        tel = sorteq.index(eq)
-        unkn = sorted(sorteq[tel].atoms(sy.Symbol))
+    print sorteq
+    unkn = sorted(sorteq[0].atoms(sy.Symbol))    
+    num_unkn = len(unkn)
+    while num_unkn == 1:
+        #unkn = sorted(sorteq[0].atoms(sy.Symbol))
+        print sorteq[0], unkn[0]
+        val_unkn = sy.solve(sorteq[0], unkn[0])
+        print unkn, val_unkn
+        seqsol[unkn[0]] = val_unkn[0]
+        i = 0
+        for eq in sorteq:
+            
+            if unkn[0] in sorteq[i]:
+                repl = eq.subs(unkn[0], sy.Rational(str(val_unkn[0])))
+                sorteq[i] = repl
+            i+=1 
+        sorteq = SortEquations(sorteq)
+        unkn = sorted(sorteq[0].atoms(sy.Symbol))
         num_unkn = len(unkn)
-        if num_unkn == 1:
-            val_unkn = sy.solve(eq, unkn) 
-            seqsol[unkn[0]] = val_unkn[0]
-            i = 0
-            for next_eq in sorteq:
-                if unkn[0] in eq:
-                    repl = next_eq.subs(unkn[0], val_unkn[0])
-                    sorteq[i] = repl
-                i+=1
                 
     return seqsol
     

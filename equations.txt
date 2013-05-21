@@ -37,5 +37,5 @@ ht-hd- hr -hw-how
 Aap-hap*lw
 hdc-166*(mL/(pL*Aap))**2
 hb-ht-hdc-hw-how
-log10(Csbf)+1+0.6*log10(Flv)+0.2*((log10(Flv))**2)
+Csbf+10**(1+0.6*log10(Flv)+0.2*((log10(Flv))**2))
 Co-0.65-1.5*(Ah/Ap)
