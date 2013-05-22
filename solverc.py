@@ -40,8 +40,9 @@ def SortEquations(eqns):
     neweq = []    
     n = 1
     for eq in eqns:
-        if not eq == 0:
+        if not eq < 0.00001:
             neweq.append(eq)
+        
             
     while len(sorteq)<len(neweq):
         for eq in eqns:
@@ -56,23 +57,21 @@ def SortEquations(eqns):
     
 def SequentialSolving(eqns):
     sorteq = SortEquations(eqns)
-    #print sorteq
     seqsol = {}
-    print sorteq
     unkn = sorted(sorteq[0].atoms(sy.Symbol))    
     num_unkn = len(unkn)
-    while num_unkn == 1:
-        #unkn = sorted(sorteq[0].atoms(sy.Symbol))
-        print sorteq[0], unkn[0]
-        val_unkn = sy.solve(sorteq[0], unkn[0])
-        print unkn, val_unkn
+    while num_unkn == 1:    
+        val_unkn = sy.solve(sorteq[0], unkn[0])   
         seqsol[unkn[0]] = val_unkn[0]
         i = 0
         for eq in sorteq:
-            
-            if unkn[0] in sorteq[i]:
+            if unkn[0] in sorteq[i]:    
+                val_unkn[0] = round(val_unkn[0], 5)    
                 repl = eq.subs(unkn[0], sy.Rational(str(val_unkn[0])))
-                sorteq[i] = repl
+                if not isinstance(repl, sy.Float):
+                    sorteq[i] = repl
+                else:
+                    sorteq[i] = repl
             i+=1 
         sorteq = SortEquations(sorteq)
         unkn = sorted(sorteq[0].atoms(sy.Symbol))

@@ -27,8 +27,8 @@ class Mainframe:
         self.cnstnm = [line.strip() for line in open('cnstnm.txt')]
         self.incidence = np.loadtxt('base.txt')
         self.cnsts = [float(line.strip()) for line in open('const.txt')]
-        self.eqns, self.inequ, self.unkns = sc.readeqns('eqns.txt')
-        self.names = [line.strip() for line in open('Unknowns.txt')]
+        self.eqns, self.inequ, self.unkns = sc.readeqns('equations.txt')
+        self.names = [line.strip() for line in open('varn.txt')]
         self.dCnst = dict(zip(self.cnstnm, self.cnsts))
         #specced = {'Lo' : 11, 'mV' : 2300, 'V1' : 234, 'mL' : 12}
 
@@ -118,7 +118,7 @@ class Mainframe:
         self.frDOF.grid(row=0, column=0, sticky='NW', padx='0.1c', pady='0.3c') 
         self.frmIndicator = {}
         # Place frame (label and edit) for each variable in names
-        mcol = 8 # Maximum labelframes / column
+        mcol = 5 # Maximum labelframes / column
         rownos = 1
         i = 0
         var = []
@@ -180,7 +180,7 @@ class Mainframe:
     def GraphFrame(self):
         self.frmGraph = Toplevel()
         self.frmGraph.title = 'Graph'
-        self.GraphArea = FigureCanvasTkAgg(self.frmGraph, scrollregion = (0, 0, 1366, 768))
+        self.GraphArea = FigureCanvasTkAgg(self.frmGraph)
         self.GraphArea.show()
         
         
@@ -326,11 +326,12 @@ class Mainframe:
                 self.cbxVar[nm].config(state=ACTIVE)
                 if (self.varCb.get(nm)).get():
                     self.dSpb[str(nm)].config(state=NORMAL)
-                    self.frmIndicator[nm].config(bg='red')
+                    self.frmIndicator[nm].config(bg='blue')
                     self.specV[nm] = self.dSpb[nm].get()
                     self.fixedvar = nm
                 else:
-                    self.dSpb[str(nm)].config(state='readonly', background = None)
+                    self.dSpb[str(nm)].config(state='readonly')
+                    self.cbxVar[str(nm)].config(state = DISABLED)
                 i+=1
                 
                 
