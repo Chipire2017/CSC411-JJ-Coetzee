@@ -1,7 +1,7 @@
 D,Distillate Flow,55,(m^3/s) 
 pL,Liquid Density,900,(kg/m^3)
 pV,Vapour Density,5,(kg/m^3)
-lambda,Latent Heat,110,(kJ/kg)
+lmda,Latent Heat,110,(kJ/kg)
 Cpavg,Average Heat Capacity,80,(kJ/(kgK))
 Tref,Reference Temperature,298.15,(K)
 F,Feed Flow,100,(m^3/s)

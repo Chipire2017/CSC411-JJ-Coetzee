@@ -119,7 +119,7 @@ class Mainframe:
         self.btnClear.grid(row = 0, column = 2)
         # Frame showing number of DOF   
         self.frmSystem = LabelFrame(self.frmInfo, text = 'System Status', padx = '0.5c', pady = '0.5c')
-        self.frmSystem.grid(row = 0, column = 1)
+        self.frmSystem.grid(row = 0, column = 4)
         self.frDOF = LabelFrame(self.frmInfo, text = "Subsystem Status", labelanchor='nw')
         self.lblDOF = Label(self.frDOF,text = 'Specify a variable', background = 'yellow', padx=3, pady=3)
         self.lblDOF.grid()
@@ -133,7 +133,7 @@ class Mainframe:
         self.frmTrayHydr = LabelFrame(self.frmInfo, text = 'Tray Hydraulics', labelanchor = 'nw')
         self.TrayHydrGraph = Canvas(self.frmTrayHydr, height = 200, width = 200)
         # Place frame (label and edit) for each variable in names
-        mcol = 6 # Maximum labelframes / column
+        mcol = 7 # Maximum labelframes / column
         rownos = 1
         i = 0
         var = []
@@ -217,7 +217,7 @@ class Mainframe:
                 
     #Display relevant frame and remove the other (don't forget)
     def dispc(self):
-        self.frmVar.grid_remove()
+        self.frmVarTab.grid_remove()
         self.frm2.grid_remove()
         self.frm3.grid_remove()
        # self.frm4.grid_remove()
@@ -247,14 +247,14 @@ class Mainframe:
     
     def disp2(self):
         self.frmConst.grid_remove()
-        self.frmVar.grid_remove()
+        self.frmVarTab.grid_remove()
         self.frm3.grid_remove()
         #self.frm4.grid_remove()
         self.frm2.grid(row =1, column = 0)
     
     def disp3(self):
         self.frmConst.grid_remove()
-        self.frmVar.grid_remove()
+        self.frmVarTab.grid_remove()
         self.frm2.grid_remove()
         #self.frm4.grid_remove()
         self.frm3.grid(row =1, column = 0)

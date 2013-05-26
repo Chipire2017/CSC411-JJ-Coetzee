@@ -6,8 +6,6 @@ from sympy.parsing.sympy_parser import parse_expr
 from math import pi
 
 
-
-
 def NameParsing(filename):
     
     Name = []
@@ -102,11 +100,9 @@ def SequentialSolving(eqns):
     seqsol = {}
     unkn = sorted(sorteq[0].atoms(sy.Symbol)) 
     num_unkn = len(unkn)
-    while num_unkn == 1 and not sorteq == []:   
+    while num_unkn == 1 and not sorteq == []:  
         val_unkn = sy.solve(sorteq[0], unkn[0]) 
-        print val_unkn
         seqsol[unkn[0]] = sy.Rational(str(round(val_unkn[0], 4)))
-        print seqsol
         i = 0
         for eq in sorteq:
             if unkn[0] in sorteq[i]:    
@@ -158,12 +154,10 @@ def FindNumberOfSatisfiedEquations(eqns):
     
 def SolveSubset(eqns, subset, subeqns, specV):
        
-    print 'wat de teef', subset
     unkn = []
     subset = SortEquations(subset)
-    print subset
+    print 'subset gekry', subset
     seq_sol = SequentialSolving(subset)
-    print 'wat de teef 1', seq_sol
     subset, unkn = InsertKnowns(seq_sol, subset)    
     simu = {}
     soln = {}
@@ -189,11 +183,14 @@ def SolveSubset(eqns, subset, subeqns, specV):
     num_satisfied, eq_satisfied = FindNumberOfSatisfiedEquations(eqns)
     print num_satisfied, eq_satisfied
     while num_satisfied > 0:
-        #unkn_sat = FindUnknowns(eq_satisfied)
-        soln.update(SequentialSolving(eq_satisfied))  
+        unkn_sat = FindUnknowns(eq_satisfied)
+        soln.update(sy.solve(eq_satisfied, unkn_sat))
+        print 'soln', soln
         eqns, unkns = InsertKnowns(soln, eqns)
-        eqns = SortEquations(eqns)        
+        print 'Hallo'
+        #eqns = SortEquations(eqns)        
         num_satisfied, eq_satisfied = FindNumberOfSatisfiedEquations(eqns)
+        print 'koos', num_satisfied
     sol = dict(init_sol.items() + soln.items()) 
     
     print 'sol', sol
