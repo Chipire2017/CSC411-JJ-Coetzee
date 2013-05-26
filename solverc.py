@@ -7,6 +7,7 @@ from math import pi
 
 
 
+
 def NameParsing(filename):
     
     Name = []
