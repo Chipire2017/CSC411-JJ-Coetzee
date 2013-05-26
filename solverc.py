@@ -157,34 +157,31 @@ def SolveSubset(eqns, subset, subeqns, specV):
     unkn = []
     subset = SortEquations(subset)
     print 'subset gekry', subset
-    seq_sol = SequentialSolving(subset)
-    subset, unkn = InsertKnowns(seq_sol, subset)    
+    #seq_sol = SequentialSolving(subset)
+    subset, unkn = InsertKnowns(specV, subset)    
     simu = {}
     soln = {}
-    tel = 1
     newsubs = []
     
     for eq in subset:
         if not eq < 0.00001:
-            eqns.append(eq)
-            num_unkn = len(FindUnknowns(eq))
-        else:
-            num_unkn = 0
+            newsubs.append(eq)
                  
-        if num_unkn == 1:
-            subset.remove(eq)
-        tel +=1    
     if not newsubs == []:    
         sim_eq = FindUnknowns(newsubs)
         simu = sy.solve(newsubs, sim_eq)
-    init_sol = dict(seq_sol.items() + simu.items() + specV.items())
+    init_sol = dict(simu.items() + specV.items())
     eqns, unkns = InsertKnowns(specV, eqns)
     eqns = SortEquations(eqns)
     num_satisfied, eq_satisfied = FindNumberOfSatisfiedEquations(eqns)
     print num_satisfied, eq_satisfied
     while num_satisfied > 0:
+        
         unkn_sat = FindUnknowns(eq_satisfied)
-        soln.update(sy.solve(eq_satisfied, unkn_sat))
+        print 'eq_sat', eq_satisfied, unkn_sat
+        solv = sy.solve(eq_satisfied, unkn_sat)
+        print 'solv', solv
+        soln.update(solv)
         print 'soln', soln
         eqns, unkns = InsertKnowns(soln, eqns)
         print 'Hallo'
