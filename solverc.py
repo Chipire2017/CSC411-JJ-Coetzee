@@ -1,6 +1,9 @@
 import networkx as nx
 import sympy as sy
+<<<<<<< HEAD
 import csv
+=======
+>>>>>>> 4cab2d324a017a63ba86ea036eddf1ffce878020
 from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 from math import pi
@@ -84,25 +87,44 @@ def SortEquations(eqns):
     neweq = []    
     n = 1
     for eq in eqns:
+<<<<<<< HEAD
         if not eq < 0.0001:
             neweq.append(eq)
+=======
+        if not eq < 0.00001:
+            neweq.append(eq)
+        
+>>>>>>> 4cab2d324a017a63ba86ea036eddf1ffce878020
             
     while len(sorteq)<len(neweq):
         for eq in eqns:
             num_unkn = len(sorted(eqns[eqns.index(eq)].atoms(sy.Symbol)))
+<<<<<<< HEAD
+=======
+            
+>>>>>>> 4cab2d324a017a63ba86ea036eddf1ffce878020
             if num_unkn == n: 
                 sorteq.append(eq)
+            
         n+=1
     return sorteq
     
 def SequentialSolving(eqns):
     sorteq = SortEquations(eqns)
     seqsol = {}
+<<<<<<< HEAD
     unkn = sorted(sorteq[0].atoms(sy.Symbol)) 
     num_unkn = len(unkn)
     while num_unkn == 1 and not sorteq == []:  
         val_unkn = sy.solve(sorteq[0], unkn[0]) 
         seqsol[unkn[0]] = sy.Rational(str(round(val_unkn[0], 4)))
+=======
+    unkn = sorted(sorteq[0].atoms(sy.Symbol))    
+    num_unkn = len(unkn)
+    while num_unkn == 1:    
+        val_unkn = sy.solve(sorteq[0], unkn[0])   
+        seqsol[unkn[0]] = val_unkn[0]
+>>>>>>> 4cab2d324a017a63ba86ea036eddf1ffce878020
         i = 0
         for eq in sorteq:
             if unkn[0] in sorteq[i]:    
@@ -113,6 +135,7 @@ def SequentialSolving(eqns):
                 else:
                     sorteq[i] = repl
             i+=1 
+<<<<<<< HEAD
         
         sorteq = RemoveZeros(sorteq)
         if sorteq == []:
@@ -123,6 +146,12 @@ def SequentialSolving(eqns):
             num_unkn = len(unkn)
     
     print 'seqsol', seqsol                
+=======
+        sorteq = SortEquations(sorteq)
+        unkn = sorted(sorteq[0].atoms(sy.Symbol))
+        num_unkn = len(unkn)
+                
+>>>>>>> 4cab2d324a017a63ba86ea036eddf1ffce878020
     return seqsol
     
 def FindSubset(specV, eqns):
