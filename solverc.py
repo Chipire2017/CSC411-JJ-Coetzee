@@ -1,9 +1,6 @@
 import networkx as nx
 import sympy as sy
-<<<<<<< HEAD
 import csv
-=======
->>>>>>> 4cab2d324a017a63ba86ea036eddf1ffce878020
 from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 from math import pi
@@ -30,12 +27,12 @@ def NameParsing(filename):
     for nm in Name:
         index =Name.index(nm)
         Value[nm] = Val[index]
-        
-    print Name    
+           
     return Name, Descript, Value, Units
 
 def FindUnknowns(eqns):
-    if not isinstance(eqns, sy.Add) :    
+    
+    if not isinstance(eqns, sy.Add):    
         if len(eqns)>1:        
             unkns = [x for x in set.union(*(eq.atoms() for eq in eqns)) if x.is_Symbol]
         elif len(eqns)==1:
@@ -62,17 +59,18 @@ def readeqns(filename):
     return eqns, inequ, unkns
 
 def InsertKnowns(known, eqns):
-    
-    for eq in eqns:
-        for nm, val in known.iteritems():
-            if str(nm) in str(eq):
-                i = eqns.index(eq)
-                eq = eq.subs(nm, val)
-                eqns[i] = eq
-                
-    unkns = FindUnknowns(eqns)
-    eqns = RemoveZeros(eqns)             
-    return eqns, unkns
+    inseq = eqns
+    if not known == {}:
+        for eq in inseq:
+            for nm, val in known.iteritems():
+                if str(nm) in str(eq):
+                    i = inseq.index(eq)
+                    eq = eq.subs(nm, val)
+                    inseq[i] = eq
+                    
+    unkns = FindUnknowns(inseq)
+    inseq = RemoveZeros(inseq)             
+    return inseq, unkns
     
 def RemoveZeros(eqns):
     neweq = []
@@ -87,44 +85,30 @@ def SortEquations(eqns):
     neweq = []    
     n = 1
     for eq in eqns:
-<<<<<<< HEAD
         if not eq < 0.0001:
             neweq.append(eq)
-=======
-        if not eq < 0.00001:
-            neweq.append(eq)
-        
->>>>>>> 4cab2d324a017a63ba86ea036eddf1ffce878020
             
     while len(sorteq)<len(neweq):
         for eq in eqns:
             num_unkn = len(sorted(eqns[eqns.index(eq)].atoms(sy.Symbol)))
-<<<<<<< HEAD
-=======
-            
->>>>>>> 4cab2d324a017a63ba86ea036eddf1ffce878020
             if num_unkn == n: 
-                sorteq.append(eq)
-            
+                sorteq.append(eq)  
         n+=1
     return sorteq
     
 def SequentialSolving(eqns):
     sorteq = SortEquations(eqns)
     seqsol = {}
-<<<<<<< HEAD
     unkn = sorted(sorteq[0].atoms(sy.Symbol)) 
     num_unkn = len(unkn)
     while num_unkn == 1 and not sorteq == []:  
-        val_unkn = sy.solve(sorteq[0], unkn[0]) 
+        val_unkn = sy.solve(sorteq[0], unkn[0], simplify = False) 
         seqsol[unkn[0]] = sy.Rational(str(round(val_unkn[0], 4)))
-=======
     unkn = sorted(sorteq[0].atoms(sy.Symbol))    
     num_unkn = len(unkn)
     while num_unkn == 1:    
         val_unkn = sy.solve(sorteq[0], unkn[0])   
         seqsol[unkn[0]] = val_unkn[0]
->>>>>>> 4cab2d324a017a63ba86ea036eddf1ffce878020
         i = 0
         for eq in sorteq:
             if unkn[0] in sorteq[i]:    
@@ -135,7 +119,6 @@ def SequentialSolving(eqns):
                 else:
                     sorteq[i] = repl
             i+=1 
-<<<<<<< HEAD
         
         sorteq = RemoveZeros(sorteq)
         if sorteq == []:
@@ -144,14 +127,7 @@ def SequentialSolving(eqns):
             sorteq = SortEquations(sorteq)
             unkn = sorted(sorteq[0].atoms(sy.Symbol))
             num_unkn = len(unkn)
-    
-    print 'seqsol', seqsol                
-=======
-        sorteq = SortEquations(sorteq)
-        unkn = sorted(sorteq[0].atoms(sy.Symbol))
-        num_unkn = len(unkn)
                 
->>>>>>> 4cab2d324a017a63ba86ea036eddf1ffce878020
     return seqsol
     
 def FindSubset(specV, eqns):
@@ -182,42 +158,26 @@ def FindNumberOfSatisfiedEquations(eqns):
     return num_satisfied, eqns_satisfied
     
 def SolveSubset(eqns, subset, subeqns, specV):
-       
+    neweq = eqns   
     unkn = []
-    subset = SortEquations(subset)
-    print 'subset gekry', subset
-    #seq_sol = SequentialSolving(subset)
-    subset, unkn = InsertKnowns(specV, subset)    
-    simu = {}
     soln = {}
-    newsubs = []
-    
-    for eq in subset:
-        if not eq < 0.00001:
-            newsubs.append(eq)
-                 
-    if not newsubs == []:    
-        sim_eq = FindUnknowns(newsubs)
-        simu = sy.solve(newsubs, sim_eq)
-    init_sol = dict(simu.items() + specV.items())
-    eqns, unkns = InsertKnowns(specV, eqns)
-    eqns = SortEquations(eqns)
-    num_satisfied, eq_satisfied = FindNumberOfSatisfiedEquations(eqns)
-    print num_satisfied, eq_satisfied
+#    subset, unkn = InsertKnowns(specV, subset)
+#    init_sol = sy.solve(subset, unkn, simplify = False)   
+#    print init_sol
+    neweq, unkns = InsertKnowns(specV, neweq)
+
+    num_satisfied, eq_satisfied = FindNumberOfSatisfiedEquations(neweq)
     while num_satisfied > 0:
-        
         unkn_sat = FindUnknowns(eq_satisfied)
-        print 'eq_sat', eq_satisfied, unkn_sat
-        solv = sy.solve(eq_satisfied, unkn_sat)
-        print 'solv', solv
+        solv = sy.solve(eq_satisfied, unkn_sat, simplify = False)
         soln.update(solv)
-        print 'soln', soln
-        eqns, unkns = InsertKnowns(soln, eqns)
-        print 'Hallo'
-        #eqns = SortEquations(eqns)        
-        num_satisfied, eq_satisfied = FindNumberOfSatisfiedEquations(eqns)
-        print 'koos', num_satisfied
-    sol = dict(init_sol.items() + soln.items()) 
+        neweq, unkns = InsertKnowns(soln, neweq)       
+        num_satisfied, eq_satisfied = FindNumberOfSatisfiedEquations(neweq)
+
+        if solv == []:
+            num_satisfied = 0
+            
+    sol = dict(soln.items() + specV.items())# + init_sol.items()) 
     
     print 'sol', sol
     
