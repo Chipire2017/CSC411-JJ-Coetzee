@@ -23,7 +23,7 @@ class Mainframe:
         self.varCb = {}
         self.dScl = {}
         self.dCspb = {}
-
+        self.fixedvar = ''
         # Read info about names and equations
         self.cnstnm, self.Cdescript, self.dCnst, self.Cunits = sc.NameParsing('cnstnm.csv')
         self.names, self.Vdescript, self.Val, self.Vunits = sc.NameParsing('varn.csv')        
@@ -131,7 +131,7 @@ class Mainframe:
         self.frDOF = LabelFrame(self.frmInfo, text = "Subsystem Status", labelanchor='nw')
         self.lblDOF = Label(self.frDOF,text = 'Specify a variable', background = 'yellow', padx=3, pady=3)
         self.lblDOF.grid()
-        self.frDOF.grid(row = 0, column = 1)
+        self.frDOF.grid(row = 0, column = 4)
                 
         self.frmExtDist = LabelFrame(self.frmInfo, text = 'Extended Distillation Column', labelanchor = 'nw')
         self.ExtDistGraph = Canvas(self.frmExtDist, height = 200, width = 200)
@@ -140,7 +140,7 @@ class Mainframe:
         self.frmTrayHydr = LabelFrame(self.frmInfo, text = 'Tray Hydraulics', labelanchor = 'nw')
         self.TrayHydrGraph = Canvas(self.frmTrayHydr, height = 200, width = 200)
         # Place frame (label and edit) for each variable in names
-        mcol = 7 # Maximum labelframes / column
+        mcol = 6 # Maximum labelframes / column
         rownos = 1
         i = 0
         var = []
@@ -171,22 +171,22 @@ class Mainframe:
                 colnos = colnos + 1
             rownos = rownos + 1
         
-#        self.frmExtDist.grid(row = 0, column = 2, padx = '0.2c', pady = '0.2c')
-#        self.frmTrayLayout.grid(row = 0, column = 3, padx = '0.2c', pady = '0.2c')
-#        self.frmTrayHydr.grid(row = 0, column = 4, padx = '0.2c', pady = '0.2c')
-#                
-#        self.ExtDistGraph.grid()
-#        self.TrayLayGraph.grid()
-#        self.TrayHydrGraph.grid()
-#        
-#        self.ExtDistImage = ImageTk.PhotoImage(Image.open('Extended Dist Column.png'))
-#        self.ExtDistGraph.create_image(100, 100, image = self.ExtDistImage)
-#        
-#        self.TrayLayImage = ImageTk.PhotoImage(Image.open('Tray Layout.png'))
-#        self.TrayLayGraph.create_image(100, 100, image = self.TrayLayImage)
-#        
-#        self.TrayHydrImage = ImageTk.PhotoImage(Image.open('Tray Hydraulics.png'))
-#        self.TrayHydrGraph.create_image(100, 100, image = self.TrayHydrImage)
+        self.frmExtDist.grid(row = 0, column = 1, padx = '0.2c', pady = '0.2c')
+        self.frmTrayLayout.grid(row = 0, column = 2, padx = '0.2c', pady = '0.2c')
+        self.frmTrayHydr.grid(row = 0, column = 3, padx = '0.2c', pady = '0.2c')
+                
+        self.ExtDistGraph.grid()
+        self.TrayLayGraph.grid()
+        self.TrayHydrGraph.grid()
+        
+        self.ExtDistImage = ImageTk.PhotoImage(Image.open('Extended Dist Column.png'))
+        self.ExtDistGraph.create_image(100, 100, image = self.ExtDistImage)
+        
+        self.TrayLayImage = ImageTk.PhotoImage(Image.open('Tray Layout.png'))
+        self.TrayLayGraph.create_image(100, 100, image = self.TrayLayImage)
+        
+        self.TrayHydrImage = ImageTk.PhotoImage(Image.open('Tray Hydraulics.png'))
+        self.TrayHydrGraph.create_image(100, 100, image = self.TrayHydrImage)
         
         self.scrollY = Scrollbar(self.frmVar,orient=VERTICAL)
         self.scrollY.grid (row = 0, rowspan = rownos, column=mcol+1, sticky=N+S+E )
@@ -330,13 +330,13 @@ class Mainframe:
         return NumFixVar
             
     def SelectVar(self):   
-           
+        self.fixedvar == ''   
         self.NumFix = self.NumFixVar()
         print 'NumFix', self.NumFix 
         
         if self.NumFix == 0:
            
-            self.lblDOF.config(text="Fix a Variable", background = 'yellow')
+            self.lblDOF.config(text="Specify a Variable", background = 'yellow')
             self.lblDOF.update_idletasks() 
             self.subset = {}
             self.subunkn = {}
@@ -346,7 +346,7 @@ class Mainframe:
                 self.frmIndicator[nm].config(bg=myColour)
                 self.cbxVar[nm].config(state = ACTIVE)
                 
-        elif self.NumFix == 1:
+        elif self.NumFix == 1 and self.fixedvar == '':
             
             i = 0
             for nm in self.cbxVar:
@@ -387,41 +387,63 @@ class Mainframe:
                 self.btnSolve.config(state=NORMAL)
                 self.lblDOF.config(text="System Specified", background = 'green')
                 self.solv()
-        elif self.NumFix > 0:
+                self.SystemStatus()
+        if (self.varCb.get(self.fixedvar)).get():
             
-            self.DeOF = self.DOF(self.subset, self.subunkn)-1
+            if self.NumFix > 0:
+                
+                self.DeOF = self.DOF(self.subset, self.subunkn)-1
+                
+                for eq in self.subset:
+                    sub, var = sc.InsertKnowns({self.fixedvar : 0}, [eq])
+                    DOF = self.DOF(sub, var)
+                    if DOF == 1:
+                        if (self.varCb.get(str(var[0]))).get():
+                            
+                            self.cbxVar[str(var[1])].config(state=DISABLED)
+                            self.cbxVar[str(var[0])].config(state=ACTIVE)
+                            self.frmIndicator[str(var[1])].config(bg = 'orange')
+                            self.frmIndicator[str(var[0])].config(bg = 'green')
+                        elif (self.varCb.get(str(var[1]))).get():
+                            self.cbxVar[str(var[0])].config(state=DISABLED)
+                            self.cbxVar[str(var[1])].config(state=ACTIVE)
+                            self.frmIndicator[str(var[0])].config(bg = 'orange')
+                            self.frmIndicator[str(var[1])].config(bg = 'green')
+                                    
+                self.DeOF=self.DeOF-self.NumFix+1  #+1 Due to Specified variable in system
+                
+                
+                if self.DeOF == 0:
+                    self.btnSolve.config(state=NORMAL)
+                    self.lblDOF.config(text="System Specified", background = 'green')
+                    self.solv()
+                    self.SystemStatus()
+                       
+                elif self.DeOF>0:
+                    self.btnSolve.config(state=DISABLED)
+                    self.lblDOF.config(text="Specify %s variables" %str(self.DeOF), background = 'yellow')
+                else:
+                    self.btnSolve.config(state=DISABLED)
+                    self.lblDOF.config(text="System overspecified", background = 'red')
+                            
             
-            for eq in self.subset:
-                sub, var = sc.InsertKnowns({self.fixedvar : 0}, [eq])
-                DOF = self.DOF(sub, var)
-                if DOF == 1:
-                    if (self.varCb.get(str(var[0]))).get():
-                        
-                        self.cbxVar[str(var[1])].config(state=DISABLED)
-                        self.cbxVar[str(var[0])].config(state=ACTIVE)
-                        self.frmIndicator[str(var[1])].config(bg = 'orange')
-                        self.frmIndicator[str(var[0])].config(bg = 'green')
-                    elif (self.varCb.get(str(var[1]))).get():
-                        self.cbxVar[str(var[0])].config(state=DISABLED)
-                        self.cbxVar[str(var[1])].config(state=ACTIVE)
-                        self.frmIndicator[str(var[0])].config(bg = 'orange')
-                        self.frmIndicator[str(var[1])].config(bg = 'green')
-                                
-            self.DeOF=self.DeOF-self.NumFix+1  #+1 Due to Specified variable in system
-            
-            
-            if self.DeOF == 0:
-                self.btnSolve.config(state=NORMAL)
-                self.lblDOF.config(text="System Specified", background = 'green')
-                self.solv()
-                   
-            elif self.DeOF>0:
-                self.btnSolve.config(state=DISABLED)
-                self.lblDOF.config(text="Specify %s variables" %str(self.DeOF), background = 'yellow')
-            else:
-                self.btnSolve.config(state=DISABLED)
-                self.lblDOF.config(text="System overspecified", background = 'red')
-                        
+        elif not (self.varCb.get(self.fixedvar)).get():            
+           
+           self.lblDOF.config(text="Specify a Variable", background = 'yellow')
+           self.lblDOF.update_idletasks() 
+           self.subset = {}
+           self.subunkn = {}
+           self.specV.clear()
+           myColour = 'light grey'
+           for nm in self.dSpb.keys():
+               self.frmIndicator[nm].config(bg=myColour)
+               self.cbxVar[nm].config(state = ACTIVE)
+               if (self.varCb.get(nm)).get() and not nm ==  self.fixedvar:
+                   self.cbxVar[nm].deselect()
+           self.fixedvar = ''
+           self.Numfix = 0 
+           
+        print self.fixedvar   
             
     # Call solve
     def solv(self):
@@ -450,6 +472,21 @@ class Mainframe:
         if self.DeOF == 0:        
             self.solv()
         return
+        
+    def SystemStatus(self):
+        eqns = self.eqns
+        knowns = {}
+        for nm in self.dSpb.keys():
+            val = self.dSpb[nm].get()
+            if not val == '':
+                knowns[nm] = val
+        
+        eqns, unkns = sc.InsertKnowns(knowns, eqns)
+        eqns = sc.RemoveZeros(eqns)
+        if eqns == []:
+            self.lblSystStatus.config(text = 'System Fully Specified', bg = 'green')
+        else:
+            self.lblSystStatus.config(text = 'System Not Fully Specified', bg = 'yellow')
         
       
 def main():

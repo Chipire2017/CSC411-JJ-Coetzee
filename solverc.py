@@ -32,14 +32,14 @@ def NameParsing(filename):
 
 def FindUnknowns(eqns):
     
-    if not isinstance(eqns, sy.Add):    
+    if not isinstance(eqns, sy.Add) and not isinstance(eqns, Float):    
         if len(eqns)>1:        
             unkns = [x for x in set.union(*(eq.atoms() for eq in eqns)) if x.is_Symbol]
         elif len(eqns)==1:
             unkns = sorted(eqns[0].atoms(sy.Symbol))
     elif isinstance(eqns, sy.Add):
         unkns = sorted(eqns.atoms(sy.Symbol))
-    if eqns == []:
+    if eqns == [] or isinstance(eqns, Float):
         unkns = []
     
     return unkns
@@ -148,7 +148,7 @@ def FindSubset(specV, eqns):
     
 def FindNumberOfSatisfiedEquations(eqns):
     num_satisfied = 0
-    eqns_satisfied = []    
+    eqns_satisfied = []  
     for eq in eqns:
         unkn = FindUnknowns(eq)
         if len(unkn) == 1:
