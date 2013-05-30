@@ -7,10 +7,6 @@ Created on 24 May 2013
 
 from Tkinter import *
 from math import *
-import numpy as np
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
-from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
 import solverc as sc
 from PIL import ImageTk, Image
 
@@ -32,10 +28,9 @@ class Mainframe:
         ## Defining widgets
 
         # Frame holding everything
-        self.mFrame = Frame(self.myParent, height = 500, width = 1000)
+        self.mFrame = Frame(self.myParent, height = 700, width = 1000)
+        self.myParent.title = 'Mechanical Design of Distillation Column'
         self.mFrame.grid()
-        self.mFrame.pack()
-        
         
         # Frame for tool bar
         self.frmTbar = Frame(self.mFrame)
@@ -61,7 +56,7 @@ class Mainframe:
         self.btnDisp3 = Button(self.frtbpt, text="3",command = self.disp3)
         self.btnDisp3.grid(row = 0, column = 3)
         
-        
+    #Frame Containing Constant Widgets    
     def ConstantsFrame(self):
         
         self.frmConst = Canvas(self.mFrame, scrollregion = (0,0,1024,768))
@@ -105,22 +100,25 @@ class Mainframe:
         self.frmCDiagram.create_image(100, 100, image = self.ConstGrap)
         
         
-        
+    #Frame Containing Widgets For Variables    
     def VariablesFrame(self):
         self.specV = {}
         self.frmIndicator = {}
         
         self.frmVarTab = Canvas(self.mFrame)
         
-        self.frmVar = Canvas(self.frmVarTab, scrollregion = (0,0,2500,1080))
-        self.frmVar.grid(row = 1, column = 0)
+        self.cnvVar = Canvas(self.frmVarTab, height = 300, width = 300, scrollregion = (0,0,500,1500))
+        self.cnvVar.grid(row = 1, column = 0)        
+        
+        self.frmVar = Frame(self.cnvVar, height = 300, width = 300) 
+        self.frmVar.grid()
         
         self.btnSolve = Button(self.frmTabs, text = "Solve", state = DISABLED, command = self.solv) #  bind to udpent (update entry)
         self.btnSolve.grid(row = 0, column = 1)
         self.btnClear = Button(self.frmTabs, text = "Clear", command = self.ClearVariables)
         self.btnClear.grid(row = 0, column = 2)
-        # Frame showing number of DOF   
-        
+    
+        #Frame containing diagrams and system status
         self.frmInfo = Canvas(self.frmVarTab)
         self.frmInfo.grid(row=0, column=0)
         
@@ -139,7 +137,8 @@ class Mainframe:
         self.TrayLayGraph = Canvas(self.frmTrayLayout, height = 200, width = 200)
         self.frmTrayHydr = LabelFrame(self.frmInfo, text = 'Tray Hydraulics', labelanchor = 'nw')
         self.TrayHydrGraph = Canvas(self.frmTrayHydr, height = 200, width = 200)
-        # Place frame (label and edit) for each variable in names
+        
+        #Variables Frame
         mcol = 6 # Maximum labelframes / column
         rownos = 1
         i = 0
@@ -188,12 +187,12 @@ class Mainframe:
         self.TrayHydrImage = ImageTk.PhotoImage(Image.open('Tray Hydraulics.png'))
         self.TrayHydrGraph.create_image(100, 100, image = self.TrayHydrImage)
         
-        self.scrollY = Scrollbar(self.frmVar,orient=VERTICAL)
-        self.scrollY.grid (row = 0, rowspan = rownos, column=mcol+1, sticky=N+S+E )
-        self.frmVar.config(yscrollcommand=self.scrollY.set)
-        self.scrollY.config(command = self.frmVar.yview)
-        
-
+        #Scrollbar Implementation
+        self.scrollY = Scrollbar(self.cnvVar,orient=VERTICAL)
+        self.scrollY.grid (row = 0, rowspan = rownos, column=1, sticky=N+S+E )
+        self.cnvVar.config(yscrollcommand=self.scrollY.set)
+        self.scrollY.config(command = self.cnvVar.yview)
+    
     def Frame1(self):
         
         self.frm1 = Canvas(self.mFrame, scrollregion = (0,0,1024,768))
@@ -235,13 +234,6 @@ class Mainframe:
     def disp1(self):
         
         self.eqns, self.unkns = sc.InsertKnowns(self.dCnst, self.eqns)
-#        initSol = sc.SequentialSolving(self.eqns) 
-#        print initSol
-#        for nm in self.dSpb.keys():
-#            for var in initSol:
-#                if nm == str(var):
-#                    self.dSpb[nm].delete(0,last=END)
-#                    self.dSpb[nm].insert(0, str(round(float(initSol.get(var)), 2)))
     
         self.frmConst.grid_remove()
         self.frm2.grid_remove()
@@ -254,24 +246,22 @@ class Mainframe:
         self.frmConst.grid_remove()
         self.frmVarTab.grid_remove()
         self.frm3.grid_remove()
-        #self.frm4.grid_remove()
         self.frm2.grid(row =1, column = 0)
     
     def disp3(self):
         self.frmConst.grid_remove()
         self.frmVarTab.grid_remove()
         self.frm2.grid_remove()
-        #self.frm4.grid_remove()
         self.frm3.grid(row =1, column = 0)
     
-    # Function which takes updates entry widgets when variables become specified from mofifier
-    def sav(self, event):
-        return
+    def sav(self):
+        
+        self.Save = {}
         for nm in self.dSpb.keys():
             if self.dSpb[nm].get() <> '':
-                self.specv[nm] = float(self.dSpb[nm].get())
-                self.defV(self.specv, self.names, self.incidence, nm, float(self.dSpb[nm].get()))
-        print specv
+                self.Save[nm] = float(self.dSpb[nm].get())
+            
+        print self.Save
     
     # Clear whichever field is in view
     def ClearVariables(self):
@@ -321,7 +311,7 @@ class Mainframe:
         DeOF = int(len(unkns)-len(eqns))
         return DeOF    
         
-    # Define Click on Spinbox
+    # Counts number of checkbuttons that are checked
     def NumFixVar(self):
         NumFixVar = 0;
         for nm in self.cbxVar:
@@ -385,7 +375,7 @@ class Mainframe:
             
             if self.DeOF == 0:
                 self.btnSolve.config(state=NORMAL)
-                self.lblDOF.config(text="System Specified", background = 'green')
+                self.lblDOF.config(text="Subsystem Specified", background = 'green')
                 self.solv()
                 self.SystemStatus()
         if (self.varCb.get(self.fixedvar)).get():
@@ -415,7 +405,7 @@ class Mainframe:
                 
                 if self.DeOF == 0:
                     self.btnSolve.config(state=NORMAL)
-                    self.lblDOF.config(text="System Specified", background = 'green')
+                    self.lblDOF.config(text="Subsystem Specified", background = 'green')
                     self.solv()
                     self.SystemStatus()
                        
@@ -472,9 +462,10 @@ class Mainframe:
         if self.DeOF == 0:        
             self.solv()
         return
-        
+    
+    #Define full system status    
     def SystemStatus(self):
-        eqns = self.eqns
+        eqns = self.eqns[:]
         knowns = {}
         for nm in self.dSpb.keys():
             val = self.dSpb[nm].get()
@@ -491,6 +482,7 @@ class Mainframe:
       
 def main():
     root = Tk()
+    root.title('Mechanical Design of Distillation Column')
     myApp = Mainframe(root)
     Mainframe.ConstantsFrame(myApp)
     Mainframe.VariablesFrame(myApp)

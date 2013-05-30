@@ -1,11 +1,11 @@
-import networkx as nx
+
 import sympy as sy
 import csv
 from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
-from math import pi
 
 
+# Read Data From csv files
 def NameParsing(filename):
     
     Name = []
@@ -30,6 +30,7 @@ def NameParsing(filename):
            
     return Name, Descript, Value, Units
 
+#Find unknowns in an equation or equations
 def FindUnknowns(eqns):
     
     if not isinstance(eqns, sy.Add) and not isinstance(eqns, Float):    
@@ -43,7 +44,7 @@ def FindUnknowns(eqns):
         unkns = []
     
     return unkns
-
+#Read Equations from File
 def readeqns(filename):
     all_eqns = [sy.parsing.sympy_parser.parse_expr(line) for line in open(filename)]
 
@@ -58,8 +59,9 @@ def readeqns(filename):
     unkns = FindUnknowns(eqns)
     return eqns, inequ, unkns
 
+#Insert Known Variables into Equations
 def InsertKnowns(known, eqns):
-    inseq = eqns
+    inseq = eqns[:]
     if not known == {}:
         for eq in inseq:
             for nm, val in known.iteritems():
@@ -71,7 +73,8 @@ def InsertKnowns(known, eqns):
     unkns = FindUnknowns(inseq)
     inseq = RemoveZeros(inseq)             
     return inseq, unkns
-    
+
+#Remove zeroes from equations    
 def RemoveZeros(eqns):
     neweq = []
     for eq in eqns:
@@ -79,7 +82,8 @@ def RemoveZeros(eqns):
             neweq.append(eq)
     
     return neweq
-    
+
+#Sort equations from least amount of unknowns     
 def SortEquations(eqns):
     sorteq = []
     neweq = []    
@@ -95,7 +99,8 @@ def SortEquations(eqns):
                 sorteq.append(eq)  
         n+=1
     return sorteq
-    
+
+#Sequentially solves a system    
 def SequentialSolving(eqns):
     sorteq = SortEquations(eqns)
     seqsol = {}
@@ -129,23 +134,22 @@ def SequentialSolving(eqns):
             num_unkn = len(unkn)
                 
     return seqsol
-    
+
+#Finds Subsystem of Equations     
 def FindSubset(specV, eqns):
     subset = []
     for eq in eqns:
         for nm, val in specV.iteritems(): 
             if nm in str(eq):
                 if len(sorted(eq.atoms(sy.Symbol)))>1:
-#                if len(FindUnknowns(eq))>1:
-#                    var = sy.Symbol(nm)
-#                    eq = eq.subs(var, val) 
                     subset.append(eq)
     if len(subset)>0:
         subunkn = FindUnknowns(subset) 
     else:
         subunkn = [] 
     return subset, subunkn
-    
+
+#Find Number of Equations with only one unknown    
 def FindNumberOfSatisfiedEquations(eqns):
     num_satisfied = 0
     eqns_satisfied = []  
@@ -157,13 +161,14 @@ def FindNumberOfSatisfiedEquations(eqns):
     
     return num_satisfied, eqns_satisfied
     
+# Used to solve subset of equations   
 def SolveSubset(eqns, subset, subeqns, specV):
-    neweq = eqns   
+    neweq = eqns[:]   
     unkn = []
     soln = {}
-#    subset, unkn = InsertKnowns(specV, subset)
-#    init_sol = sy.solve(subset, unkn, simplify = False)   
-#    print init_sol
+    subset, unkn = InsertKnowns(specV, subset)
+    init_sol = sy.solve(subset, unkn, simplify = False)   
+    print init_sol
     neweq, unkns = InsertKnowns(specV, neweq)
 
     num_satisfied, eq_satisfied = FindNumberOfSatisfiedEquations(neweq)

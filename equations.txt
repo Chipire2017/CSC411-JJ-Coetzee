@@ -17,7 +17,7 @@ Dc-((4*V1*MWv)/(22/7*n*pV*frac*uflood*3600))**(0.5)
 x-((thta-sin(thta))/(2*22/7))
 lw-Dc*sin(thta)/2
 Ad-(1-n)*Ac
-lup-(Dc-0.05)*(pi()*thta)/180
+lup-(Dc-0.05)*(22/7*thta)/180
 Aup-0.05*lup
 lcz-lw-0.05
 Acz-2*(lcz*0.05)
