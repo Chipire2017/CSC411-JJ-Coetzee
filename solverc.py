@@ -168,7 +168,6 @@ def SolveSubset(eqns, subset, subeqns, specV):
     soln = {}
     subset, unkn = InsertKnowns(specV, subset)
     init_sol = sy.solve(subset, unkn, simplify = False)   
-    print init_sol
     neweq, unkns = InsertKnowns(specV, neweq)
 
     num_satisfied, eq_satisfied = FindNumberOfSatisfiedEquations(neweq)
@@ -184,6 +183,5 @@ def SolveSubset(eqns, subset, subeqns, specV):
             
     sol = dict(soln.items() + specV.items())# + init_sol.items()) 
     
-    print 'sol', sol
     
     return sol        

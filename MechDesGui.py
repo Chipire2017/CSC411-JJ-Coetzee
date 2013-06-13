@@ -107,11 +107,13 @@ class Mainframe:
         
         self.frmVarTab = Canvas(self.mFrame)
         
-        self.cnvVar = Canvas(self.frmVarTab, height = 300, width = 300, scrollregion = (0,0,500,1500))
-        self.cnvVar.grid(row = 1, column = 0)        
+        self.frmVar = Frame(self.frmVarTab, height = 300, width = 300) 
+        self.frmVar.grid(row = 1, column = 0)        
         
-        self.frmVar = Frame(self.cnvVar, height = 300, width = 300) 
-        self.frmVar.grid()
+        self.cnvVar = Canvas(self.frmVar, height = 300, width = 300, scrollregion = (0,0,800,1200))
+        self.cnvVar.grid()        
+        
+        
         
         self.btnSolve = Button(self.frmTabs, text = "Solve", state = DISABLED, command = self.solv) #  bind to udpent (update entry)
         self.btnSolve.grid(row = 0, column = 1)
@@ -139,7 +141,7 @@ class Mainframe:
         self.TrayHydrGraph = Canvas(self.frmTrayHydr, height = 200, width = 200)
         
         #Variables Frame
-        mcol = 6 # Maximum labelframes / column
+        mcol = 7 # Maximum labelframes / column
         rownos = 1
         i = 0
         var = []
@@ -147,14 +149,12 @@ class Mainframe:
             colnos = 0
             while (i < len(self.names)) and (colnos <= (mcol-1)):
                 # create a new frame for each iteration in the loop
-                self.lfr = LabelFrame(self.frmVar, text = self.Vdescript[i] + ' ' + self.Vunits[i], labelanchor = 'nw')
+                self.lfr = LabelFrame(self.cnvVar, text = self.Vdescript[i] + ' ' + self.Vunits[i], labelanchor = 'nw')
                 
                 self.frmIndicator[self.names[i]] = Frame(self.lfr, height = 3, width = 50)
                 self.frmIndicator[self.names[i]].grid(row = 0, column = 0)
                 self.dSpb[self.names[i]] = Spinbox(self.lfr, width = 5, from_ = -100000, to = 100000, increment = 0.1)
                 self.dSpb[self.names[i]].grid(row = 1, column = 0, sticky = N+S)
-#                self.lblIndVar = Label(self.lfr, text = self.Vunits[i]) #Will add units later
-#                self.lblIndVar.grid(row = 0, column = 1, padx = '1c')
                 self.dSpb[self.names[i]].bind("<Return>", self.SolveEnterPress)
                 self.dSpb[self.names[i]].delete(0,last=END)
                 self.dScl[self.names[i]] = Scale(self.lfr, orient=HORIZONTAL, length = '2c')
@@ -188,10 +188,15 @@ class Mainframe:
         self.TrayHydrGraph.create_image(100, 100, image = self.TrayHydrImage)
         
         #Scrollbar Implementation
-        self.scrollY = Scrollbar(self.cnvVar,orient=VERTICAL)
+        self.frmVar.update_idletasks()
+        self.cnvVar.config(scrollregion = self.cnvVar.bbox('all'))
+                
+        self.scrollY = Scrollbar(self.frmVar,orient=VERTICAL)
         self.scrollY.grid (row = 0, rowspan = rownos, column=1, sticky=N+S+E )
-        self.cnvVar.config(yscrollcommand=self.scrollY.set)
+        
         self.scrollY.config(command = self.cnvVar.yview)
+        self.cnvVar.config(yscrollcommand=self.scrollY.set)
+        
     
     def Frame1(self):
         
@@ -261,7 +266,6 @@ class Mainframe:
             if self.dSpb[nm].get() <> '':
                 self.Save[nm] = float(self.dSpb[nm].get())
             
-        print self.Save
     
     # Clear whichever field is in view
     def ClearVariables(self):
@@ -269,7 +273,6 @@ class Mainframe:
         for vspb in self.dSpb.keys():
             self.dSpb[vspb].delete(0,last=END)
             self.dSpb[vspb].insert(0,'')
-        self.sp.clear()
         self.specV.clear()
    
     def ClearConstants(self):
@@ -294,7 +297,6 @@ class Mainframe:
             self.lblCnstFSpec.grid(row = 2, columnspan = 3, pady = '2c')
             for nmc in self.cnstnm:
                 self.dCnst[nmc] = float(self.dCspb[nmc].get())
-            print self.dCnst
        
 
     # Insert original constants, 
@@ -322,7 +324,6 @@ class Mainframe:
     def SelectVar(self):   
         self.fixedvar == ''   
         self.NumFix = self.NumFixVar()
-        print 'NumFix', self.NumFix 
         
         if self.NumFix == 0:
            
@@ -443,7 +444,6 @@ class Mainframe:
             if (self.varCb.get(nm)).get():
                self.specV[nm] = self.dSpb[nm].get() 
         
-        print 'specV', self.specV   
         subset, subunkn = sc.InsertKnowns(self.specV, self.subset)
         if self.DeOF == 0:
             self.sp = sc.SolveSubset(eqns, subset, subunkn, self.specV) 
